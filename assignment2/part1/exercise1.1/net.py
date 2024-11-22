@@ -115,10 +115,11 @@ if __name__ == '__main__':
     print(opt)
 
     use_gpu = torch.cuda.is_available()
-    net_model = 'net_model_wts.pth'
     conv_type = opt.conv_type
     net_type = opt.net_type
     batch_size = opt.batch_size
+    net_model = f'net_model_{conv_type}_{net_type}.pth'
+
 
     #******************************************************************#
     ###******************* DATASET GENERATION ***********************###
