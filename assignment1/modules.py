@@ -41,19 +41,24 @@ class LinearModule(object):
 
         Also, initialize gradients with zeros.
         """
-
-        # Note: For the sake of this assignment, please store the parameters
-        # and gradients in this format, otherwise some unit tests might fail.
-        self.params = {'weight': None, 'bias': None} # Model parameters
-        self.grads = {'weight': None, 'bias': None} # Gradients
-
         #######################
         # PUT YOUR CODE HERE  #
         #######################
-
+        # Kaiming initialization
+        std = np.sqrt(2 / in_features)
+        self.params = {
+            'weight': np.random.normal(0, std, (out_features, in_features)),
+            'bias': np.zeros((1, out_features)),
+        }
+        # Gradients
+        self.grads = {
+            'weight': np.zeros((out_features, in_features)),
+            'bias': np.zeros((1, out_features)),
+        }
         #######################
         # END OF YOUR CODE    #
         #######################
+
 
     def forward(self, x):
         """
@@ -69,10 +74,14 @@ class LinearModule(object):
 
         Hint: You can store intermediate variables inside the object. They can be used in backward pass computation.
         """
-
         #######################
         # PUT YOUR CODE HERE  #
         #######################
+        # Save input for use in the backward pass
+        self.input = x
+
+        # Compute linear transformation
+        out = np.dot(x, self.params['weight'].T) + self.params['bias']
 
         #######################
         # END OF YOUR CODE    #
@@ -97,6 +106,12 @@ class LinearModule(object):
         #######################
         # PUT YOUR CODE HERE  #
         #######################
+        # Compute gradients for weights and biases
+        self.grads['weight'] = np.dot(dout.T, self.input)  # Weight gradient
+        self.grads['bias'] = np.sum(dout, axis=0, keepdims=True)  # Bias gradient
+
+        # Compute gradient with respect to the input
+        dx = np.dot(dout, self.params['weight'])  # Input gradient
 
         #######################
         # END OF YOUR CODE    #
@@ -114,7 +129,7 @@ class LinearModule(object):
         #######################
         # PUT YOUR CODE HERE  #
         #######################
-        pass
+        self.input = None
         #######################
         # END OF YOUR CODE    #
         #######################
@@ -146,6 +161,10 @@ class ELUModule(object):
         #######################
         # PUT YOUR CODE HERE  #
         #######################
+        self.input = x  # Cache the input for the backward pass
+
+        # Element-wise ELU calculation
+        out = np.where(x > 0, x, self.alpha * (np.exp(x) - 1))
 
         #######################
         # END OF YOUR CODE    #
@@ -168,6 +187,12 @@ class ELUModule(object):
         #######################
         # PUT YOUR CODE HERE  #
         #######################
+        # Compute the local gradient of ELU
+        local_grad = np.where(self.input > 0, 1, self.alpha * np.exp(self.input))
+
+        # Compute the gradient of the loss with respect to the input
+        dx = dout * local_grad
+
 
         #######################
         # END OF YOUR CODE    #
@@ -185,7 +210,9 @@ class ELUModule(object):
         #######################
         # PUT YOUR CODE HERE  #
         #######################
-        pass
+        self.input = None
+
+
         #######################
         # END OF YOUR CODE    #
         #######################
@@ -214,10 +241,20 @@ class SoftMaxModule(object):
         #######################
         # PUT YOUR CODE HERE  #
         #######################
+        # Stabilize input by subtracting max along rows
+        x_stable = x - np.max(x, axis=1, keepdims=True)
+
+        # Compute softmax
+        exp_x = np.exp(x_stable)
+        out = exp_x / np.sum(exp_x, axis=1, keepdims=True)
+
+        # Cache the output for backward pass
+        self.output = out
 
         #######################
         # END OF YOUR CODE    #
         #######################
+
 
         return out
 
@@ -236,6 +273,7 @@ class SoftMaxModule(object):
         #######################
         # PUT YOUR CODE HERE  #
         #######################
+        dx = self.output * (dout - np.sum(dout * self.output, axis=1, keepdims=True))
 
         #######################
         # END OF YOUR CODE    #
@@ -254,7 +292,8 @@ class SoftMaxModule(object):
         #######################
         # PUT YOUR CODE HERE  #
         #######################
-        pass
+        self.output = None
+
         #######################
         # END OF YOUR CODE    #
         #######################
@@ -281,7 +320,15 @@ class CrossEntropyModule(object):
         #######################
         # PUT YOUR CODE HERE  #
         #######################
+        # Clip x to prevent log(0)
+        x_clipped = np.clip(x, 1e-12, 1.0)
 
+        # Convert class indices to one-hot encoding
+        y_one_hot = np.zeros_like(x)
+        y_one_hot[np.arange(x.shape[0]), y] = 1
+
+        # Compute cross-entropy loss
+        out = -np.sum(y_one_hot * np.log(x_clipped)) / x.shape[0]
         #######################
         # END OF YOUR CODE    #
         #######################
@@ -304,7 +351,16 @@ class CrossEntropyModule(object):
         #######################
         # PUT YOUR CODE HERE  #
         #######################
+        # Clip x to prevent division by zero
+        x_clipped = np.clip(x, 1e-12, 1.0)
 
+        # Convert class indices to one-hot encoding
+        y_one_hot = np.zeros_like(x)
+        y_one_hot[np.arange(x.shape[0]), y] = 1
+
+        # Compute gradient
+        dx = -y_one_hot / x_clipped
+        dx /= x.shape[0]  # Normalize by batch size
         #######################
         # END OF YOUR CODE    #
         #######################
