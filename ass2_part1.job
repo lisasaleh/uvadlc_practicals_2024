@@ -12,9 +12,19 @@ module purge
 module load 2023
 module load Anaconda3/2023.07-2
 
-# Your job starts in the directory where you call sbatch
+# Change to the directory where the script is located
 cd $HOME/uvadlc_practicals_2024/assignment2/part1/exercise1.1
+
 # Activate your environment
 source activate dl2024
-# Run your code
-srun python net.py --net_type='Net1' --conv_type='valid'
+
+# Define all conv_types to run
+conv_types=('valid' 'sconv' 'fconv' 'circular' 'reflect' 'replicate')
+
+# Loop through each conv_type and run the Python script
+for conv_type in "${conv_types[@]}"
+do
+    echo "Running for conv_type: $conv_type"
+    srun python net.py --net_type='Net1' --conv_type=$conv_type
+    echo "Finished for conv_type: $conv_type"
+done
