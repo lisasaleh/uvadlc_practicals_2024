@@ -52,7 +52,21 @@ class MLP(object):
         #######################
         # PUT YOUR CODE HERE  #
         #######################
-        pass
+        
+        self.layers = []
+
+        # Add hidden layers
+        in_features = n_inputs
+        for out_features in n_hidden:
+            
+            # Add Linear and ELU modules for each hidden layer
+            self.layers.append(LinearModule(in_features, out_features))
+            self.layers.append(ELUModule(alpha=1.0))  #  alpha=1.0 for ELU
+            in_features = out_features
+
+        # Add the output layer
+        self.layers.append(LinearModule(in_features, n_classes))
+        self.layers.append(SoftMaxModule())  # Add softmax for classification
         #######################
         # END OF YOUR CODE    #
         #######################
@@ -74,7 +88,14 @@ class MLP(object):
         #######################
         # PUT YOUR CODE HERE  #
         #######################
-
+        # Flatten the input to shape (batch_size, n_inputs)
+        x = x.reshape(x.shape[0], -1)  # Flatten each sample into a 1D vector (3072,)
+        
+        # Pass input through all layers
+        for layer in self.layers:
+            x = layer.forward(x)
+        
+        out = x  # Final output
         #######################
         # END OF YOUR CODE    #
         #######################
@@ -95,7 +116,10 @@ class MLP(object):
         #######################
         # PUT YOUR CODE HERE  #
         #######################
-        pass
+        # Pass gradients backward through each layer
+        for layer in reversed(self.layers):
+          dout = layer.backward(dout)
+
         #######################
         # END OF YOUR CODE    #
         #######################
@@ -112,7 +136,9 @@ class MLP(object):
         #######################
         # PUT YOUR CODE HERE  #
         #######################
-        pass
+        # Call clear_cache for each layer
+        for layer in self.layers:
+          layer.clear_cache()          
         #######################
         # END OF YOUR CODE    #
         #######################

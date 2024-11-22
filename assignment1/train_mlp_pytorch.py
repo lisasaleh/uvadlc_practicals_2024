@@ -28,10 +28,12 @@ from copy import deepcopy
 from tqdm.auto import tqdm
 from mlp_pytorch import MLP
 import cifar10_utils
+import matplotlib.pyplot as plt
 
 import torch
 import torch.nn as nn
 import torch.optim as optim
+import torch.nn.functional as F
 
 
 def accuracy(predictions, targets):
@@ -41,7 +43,7 @@ def accuracy(predictions, targets):
 
     Args:
       predictions: 2D float array of size [batch_size, n_classes], predictions of the model (logits)
-      labels: 2D int array of size [batch_size, n_classes]
+      targets: 2D int array of size [batch_size, n_classes]
               with one-hot encoding. Ground truth labels for
               each sample in the batch
     Returns:
@@ -55,8 +57,14 @@ def accuracy(predictions, targets):
     #######################
     # PUT YOUR CODE HERE  #
     #######################
+    # Find the class with the highest probability (predicted class)
+    _, predicted_classes = torch.max(predictions, dim=1)
 
-    #######################
+    # Compare predictions to targets (targets are class indices)
+    correct_preds = (predicted_classes == targets).sum().item()
+
+    # Calculate accuracy as the ratio of correct predictions to total samples
+    accuracy = correct_preds / targets.size(0)
     # END OF YOUR CODE    #
     #######################
 
@@ -84,11 +92,56 @@ def evaluate_model(model, data_loader):
     # PUT YOUR CODE HERE  #
     #######################
 
+    # Set the model to eval mode
+    model.eval()
+
+    total_accuracy = 0
+    total_samples = 0
+
+    # Loop over batches in the data_loader
+    with torch.no_grad():
+        for x_batch, y_batch in data_loader:
+            # Move data to the correct device (CPU or GPU)
+            x_batch, y_batch = x_batch.to(model.device), y_batch.to(model.device)
+
+            # Forward pass
+            predictions = model(x_batch)
+
+            # Calculate accuracy for this batch
+            batch_accuracy = accuracy(predictions, y_batch)
+
+            # Update total accuracy and sample count
+            total_accuracy += batch_accuracy * x_batch.size(0)  # x_batch.size(0) is the batch size
+            total_samples += x_batch.size(0)
+
+    # Compute average accuracy
+    avg_accuracy = total_accuracy / total_samples
+
     #######################
     # END OF YOUR CODE    #
     #######################
 
     return avg_accuracy
+
+def plot_save_training_loss(training_losses, test_accuracy):
+    # Define the directory for saving the plot
+    plot_dir = "./plots"
+    
+    # Check if the directory exists, create it if it doesn't
+    if not os.path.exists(plot_dir):
+        os.makedirs(plot_dir)
+    
+    # Create the plot
+    plt.figure(figsize=(8, 6))
+    plt.plot(training_losses, label="Training Loss")
+    plt.title(f"Training Loss Curve for model with accuracy {test_accuracy:.4f}")
+    plt.xlabel("Epoch")
+    plt.ylabel("Loss")
+    plt.legend()
+
+    # Save the plot in the specified directory
+    plot_path = os.path.join(plot_dir, "training_loss_plot.png")
+    plt.savefig(plot_path)
 
 
 def train(hidden_dims, lr, use_batch_norm, batch_size, epochs, seed, data_dir):
@@ -138,23 +191,75 @@ def train(hidden_dims, lr, use_batch_norm, batch_size, epochs, seed, data_dir):
 
     # Loading the dataset
     cifar10 = cifar10_utils.get_cifar10(data_dir)
-    cifar10_loader = cifar10_utils.get_dataloader(cifar10, batch_size=batch_size,
-                                                  return_numpy=False)
+    cifar10_loader = cifar10_utils.get_dataloader(cifar10, batch_size=batch_size, return_numpy=False)
 
     #######################
     # PUT YOUR CODE HERE  #
     #######################
 
     # TODO: Initialize model and loss module
-    model = ...
-    loss_module = ...
+    model = MLP(n_inputs=32*32*3, n_hidden=hidden_dims, n_classes=10, use_batch_norm=use_batch_norm)
+    model.to(device)
+    
+    loss_module = nn.CrossEntropyLoss()
+    optimizer = optim.SGD(model.parameters(), lr=lr)
+
+    # Initialize tracking lists for losses and accuracies
+    val_accuracies = []
+    training_losses = []
+    best_val_accuracy = 0
+    best_model = None
+
     # TODO: Training loop including validation
-    # TODO: Do optimization with the simple SGD optimizer
-    val_accuracies = ...
+    # Training loop
+    for epoch in range(epochs):
+        model.train()  # Set the model to training mode
+        epoch_loss = 0
+
+        # Iterate through the training dataset
+        for x_batch, y_batch in tqdm(cifar10_loader['train'], desc=f'Epoch {epoch + 1}/{epochs}'):
+            # Move the batch data to the correct device (GPU or CPU)
+            x_batch, y_batch = x_batch.to(device), y_batch.to(device)
+
+            # Forward pass
+            out = model(x_batch)
+
+            # Compute the loss
+            loss = loss_module(out, y_batch)
+            epoch_loss += loss.item()
+
+            # Zero the gradients before the backward pass
+            optimizer.zero_grad()
+
+            # Backward pass: compute gradient of the loss with respect to model parameters
+            loss.backward()
+
+            # Update parameters (via gradient descent)
+            optimizer.step()
+
+        # Track average loss for the epoch
+        avg_loss = epoch_loss / len(cifar10_loader['train'])
+        training_losses.append(avg_loss)
+        
+        # Evaluate model on the validation set
+        val_accuracy = evaluate_model(model, cifar10_loader['validation'])
+        val_accuracies.append(val_accuracy)
+
+        # Save the best model based on validation accuracy
+        if val_accuracy > best_val_accuracy:
+            best_val_accuracy = val_accuracy
+            best_model = deepcopy(model)
+
     # TODO: Test best model
-    test_accuracy = ...
+    test_accuracy = evaluate_model(best_model, cifar10_loader['test'])
+
     # TODO: Add any information you might want to save for plotting
-    logging_dict = ...
+    logging_dict = {
+        "final_val_accuracy": best_val_accuracy,
+        "test_accuracy": test_accuracy,
+        "val_accuracies": val_accuracies,
+        "training_losses": training_losses
+    }
     #######################
     # END OF YOUR CODE    #
     #######################
@@ -189,5 +294,8 @@ if __name__ == '__main__':
     args = parser.parse_args()
     kwargs = vars(args)
 
-    train(**kwargs)
     # Feel free to add any additional functions, such as plotting of the loss curve here
+    model, val_accuracies, test_accuracy, logging_dict = train(**kwargs)
+
+    # Plot training loss curve
+    plot_save_training_loss(logging_dict['training_losses'], test_accuracy)

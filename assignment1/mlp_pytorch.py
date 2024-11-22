@@ -59,7 +59,34 @@ class MLP(nn.Module):
         #######################
         # PUT YOUR CODE HERE  #
         #######################
-        pass
+        super().__init__()
+
+        # Store layers explicitly
+        self.hidden_layers = nn.ModuleList()
+        self.batch_norm_layers = nn.ModuleList() if use_batch_norm else None
+        self.activation_layers = nn.ModuleList()
+
+        # Define input to the first hidden layer
+        in_features = n_inputs
+        for out_features in n_hidden:
+            # Add Linear layer
+            linear_layer = nn.Linear(in_features, out_features)
+            nn.init.kaiming_normal_(linear_layer.weight, mode='fan_in')
+            self.hidden_layers.append(linear_layer)
+
+            # Add BatchNorm layer
+            if use_batch_norm:
+                self.batch_norm_layers.append(nn.BatchNorm1d(out_features))
+
+            # Add ELU activation
+            self.activation_layers.append(nn.ELU())
+
+            # Update input size for the next layer
+            in_features = out_features
+
+        # Define and init output layer
+        self.output_layer = nn.Linear(in_features, n_classes)
+        nn.init.kaiming_normal_(self.output_layer.weight, mode='fan_in')
         #######################
         # END OF YOUR CODE    #
         #######################
@@ -81,7 +108,17 @@ class MLP(nn.Module):
         #######################
         # PUT YOUR CODE HERE  #
         #######################
+        x = x.view(x.size(0), -1)  # Flatten all dimensions except the batch size
+        
+        # Pass input through each hidden layer, applying BatchNorm and ELU if specified
+        for i in range(len(self.hidden_layers)):
+            x = self.hidden_layers[i](x)
+            if self.batch_norm_layers:     # Apply batch normalization if enabled
+                x = self.batch_norm_layers[i](x)
+            x = self.activation_layers[i](x)
 
+        # Final output layer
+        out = self.output_layer(x)
         #######################
         # END OF YOUR CODE    #
         #######################
