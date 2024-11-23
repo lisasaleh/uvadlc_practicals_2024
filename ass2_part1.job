@@ -25,6 +25,6 @@ conv_types=('valid' 'sconv' 'fconv' 'circular' 'reflect' 'replicate')
 for conv_type in "${conv_types[@]}"
 do
     echo "Running for conv_type: $conv_type"
-    srun python net.py --net_type='Net1' --conv_type=$conv_type
+    srun python net.py --net_type='Net2' --conv_type=$conv_type
     echo "Finished for conv_type: $conv_type"
 done
