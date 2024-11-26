@@ -41,7 +41,12 @@ class RMSNorm(nn.Module):
 
     def forward(self, x):
         # Compute the norm of the input tensor and divide by the norm
+        norm = torch.sqrt(torch.mean(x**2, dim=-1, keepdim=True) + self.eps)
+        x_normalized = x / norm
+
         # Scale the normalized tensor by the learned weight parameter
+        output = self.weight * x_normalized
+
         return output
 
 class CausalSelfAttention(nn.Module):
@@ -110,12 +115,13 @@ class CausalSelfAttention(nn.Module):
         """
         # Generate RoPE embeddings dynamically based on T
         seq_pos = torch.arange(T, device=xq.device, dtype=self.inv_freq.dtype).unsqueeze(-1)  # Shape: (T, 1)
-        freqs = torch.einsum("i,j->ij", seq_pos.squeeze(), self.inv_freq)  # Shape: (T, dim // 2)
+        inv_freq = self.inv_freq.to(xq.device)
+        freqs = torch.einsum("i,j->ij", seq_pos.squeeze(), inv_freq)  # Shape: (T, dim // 2)
         pos_emb = torch.cat((freqs.sin(), freqs.cos()), dim=-1).unsqueeze(0).unsqueeze(0)  # Shape: (1, 1, T, dim)
         
         # Split pos into sin and cos components, repeating each to match xq and xk dimensions
-        pos_sin = pos_emb[..., :pos_emb.size(-1) // 2]
-        pos_cos = pos_emb[..., pos_emb.size(-1) // 2:]
+        pos_sin = pos_emb[..., :pos_emb.size(-1) // 2]  # Shape: (1, 1, T, dim // 2)
+        pos_cos = pos_emb[..., pos_emb.size(-1) // 2:]  # Shape: (1, 1, T, dim // 2)
 
         # Apply RoPE transformation: pair and rotate dimensions
         # Use even/odd to pair dimensions
@@ -125,9 +131,12 @@ class CausalSelfAttention(nn.Module):
         xk_even = xk[..., ::2]
         xk_odd = xk[..., 1::2]
 
-        xq_rot = (xq * pos_cos) + (torch.cat((-xq_odd, xq_even), dim=-1) * pos_sin)
-        xk_rot = (xk * pos_cos) + (torch.cat((-xk_odd, xk_even), dim=-1) * pos_sin)
-        
+        xq_rot = (xq_even * pos_cos) - (xq_odd * pos_sin)
+        xq_rot = torch.cat((xq_rot, xq_odd * pos_cos + xq_even * pos_sin), dim=-1)
+
+        xk_rot = (xk_even * pos_cos) - (xk_odd * pos_sin)
+        xk_rot = torch.cat((xk_rot, xk_odd * pos_cos + xk_even * pos_sin), dim=-1)
+
         return xq_rot, xk_rot
         
     def forward(self, x):
@@ -156,6 +165,7 @@ class CausalSelfAttention(nn.Module):
             # Compute attention scores
             att = (q @ k.transpose(-2, -1)) / (q.size(-1) ** 0.5)  # (B, nh, T, T)          
             # Apply causal mask
+            self.mask = self.mask.to(att.device)
             att = att.masked_fill(self.mask[:, :, :T, :T] == 0, -1e9)
             # Apply attention to the values
             y = att @ v  # (B, nh, T, T) x (B, nh, T, hs) -> (B, nh, T, hs)
@@ -192,8 +202,8 @@ class TransformerDecoderBlock(nn.Module):
         super().__init__()
         # Initialize the layers
         # Layer normalization
-        self.ln1 = nn.LayerNorm(config.n_embd)  # Before self-attention
-        self.ln2 = nn.LayerNorm(config.n_embd)  # Before MLP
+        self.ln1 = nn.LayerNorm(config.n_embd, eps=1e-6)  # Before self-attention
+        self.ln2 = nn.LayerNorm(config.n_embd, eps=1e-6)  # Before MLP
         
         # Causal self-attention
         self.attn = CausalSelfAttention(config)
@@ -201,7 +211,7 @@ class TransformerDecoderBlock(nn.Module):
         # MLP (Linear → BERTGELU → Linear → Dropout)
         self.mlp = nn.Sequential(
             nn.Linear(config.n_embd, 4 * config.n_embd),  # Expand dimension
-            nn.GELU(),  # Use BERT-style GELU activation
+            nn.GELU(),  # Use GELU activation
             nn.Linear(4 * config.n_embd, config.n_embd),  # Reduce back to original dimension
             nn.Dropout(config.resid_pdrop),  # Apply dropout
         )
@@ -209,10 +219,10 @@ class TransformerDecoderBlock(nn.Module):
     def forward(self, x):
         # Forward pass through the Decoder Layer
         # Layer norm → Self-attention → Residual connection
-        out = x + self.attn(self.ln1(x))
+        out = x + self.attn(self.ln1(x))  # Shape: (B, T, C)
         
         # Layer norm → MLP → Residual connection
-        out = out + self.mlp(self.ln2(out))
+        out = out + self.mlp(self.ln2(out))  # Shape: (B, T, C)
 
         return out
 
@@ -417,8 +427,9 @@ class GPT(nn.Module):
 
         # Forward token and position embedders
         # token embeddings of shape (b, t, n_embd)
+        tok_emb = self.transformer.w_token_emb(idx)
         # apply dropout to the tokens
-        tok_emb = self.transformer.w_token_emb(idx)  # (b, t, n_embd)
+        tok_emb = self.transformer.drop(tok_emb)
         
         if self.config.abs_emb:
             pos = torch.arange(0, t, dtype=torch.long, device=device).unsqueeze(0) # shape (1, t)
@@ -429,10 +440,10 @@ class GPT(nn.Module):
 
         # Iterate through the transformer blocks
         for block in self.transformer.h:
-            x = block(x)
+            x = block(x)    # Shape remains (b, t, n_embd)
 
         # Apply final layer normalization and linear layer to produce logits
-        x = self.transformer.ln_f(x)  # Normalize output
+        x = self.transformer.ln_f(x)  # Shape: (b, t, n_embd)
         logits = self.lm_head(x)  # Project to vocab size
 
         return logits
@@ -471,6 +482,7 @@ class GPT(nn.Module):
                                 tokens, with shape (batch size, sequence length + max_new_tokens).
         """
         assert not (top_k and top_p), "You can only use one of top_k or top_p sampling"
+        
         for _ in range(max_new_tokens):
             # if the sequence context is growing too long we must crop it at block_size
             idx_cond = idx if idx.size(1) <= self.block_size else idx[:, -self.block_size:]
