@@ -425,19 +425,22 @@ class GPT(nn.Module):
                             (batch_size, sequence_length, vocabulary_size).
         """
         device = idx.device
-        idx = idx.to(device)  # Ensure that the input idx is on the same device as the model
+        print(f"Input tensor device: {device}")  # Debugging: Print device of input tensor
         b, t = idx.size()
         assert t <= self.block_size, f"Cannot forward sequence of length {t}, block size is only {self.block_size}"
 
         # Forward token and position embedders
         # token embeddings of shape (b, t, n_embd)
         tok_emb = self.transformer.w_token_emb(idx.to(device))  # Ensure embeddings are on the same device
+        print(f"Token embeddings device: {tok_emb.device}")  # Debugging: Print device of token embeddings
         # apply dropout to the tokens
         tok_emb = self.transformer.drop(tok_emb)
         
         if self.config.abs_emb:
             pos = torch.arange(0, t, dtype=torch.long, device=device).unsqueeze(0) # shape (1, t)
-            pos_emb = self.transformer.w_pos_emb(pos) 
+            print(f"Position tensor device: {pos.device}")  # Debugging: Print device of position tensor
+            pos_emb = self.transformer.w_pos_emb(pos)
+            print(f"Position embeddings device: {pos_emb.device}")  # Debugging: Print device of position embeddings
             x = tok_emb + pos_emb
         else:
             x = tok_emb
@@ -445,10 +448,13 @@ class GPT(nn.Module):
         # Iterate through the transformer blocks
         for block in self.transformer.h:
             x = block(x)    # Shape remains (b, t, n_embd)
+        print(f"Block output device: {x.device}")  # Debugging: Print device of block output
 
         # Apply final layer normalization and linear layer to produce logits
         x = self.transformer.ln_f(x)  # Shape: (b, t, n_embd)
+        print(f"After layer normalization device: {x.device}")  # Debugging: Print device after layer normalization
         logits = self.lm_head(x)  # Project to vocab size
+        print(f"Logits device: {logits.device}")  # Debugging: Print device of final logits
 
         return logits
 
