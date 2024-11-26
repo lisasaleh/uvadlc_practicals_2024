@@ -115,7 +115,6 @@ class CausalSelfAttention(nn.Module):
         """
         # Generate RoPE embeddings dynamically based on T
         seq_pos = torch.arange(T, device=xq.device, dtype=self.inv_freq.dtype).unsqueeze(-1)  # Shape: (T, 1)
-        inv_freq = self.inv_freq.to(xq.device)
         freqs = torch.einsum("i,j->ij", seq_pos.squeeze(), inv_freq)  # Shape: (T, dim // 2)
         pos_emb = torch.cat((freqs.sin(), freqs.cos()), dim=-1).unsqueeze(0).unsqueeze(0)  # Shape: (1, 1, T, dim)
         
@@ -159,14 +158,16 @@ class CausalSelfAttention(nn.Module):
         # Mask the calculated attention weights with the mask parameter.
 
         if self.use_flash_attn:
-            raise NotImplementedError
-            # y = ...
+            attn_output, _ = F.scaled_dot_product_attention(q, k, v, attn_mask=self.mask[:, :, :T, :T])
+            attn_output = self.attn_dropout(attn_output)
+            y = attn_output 
         else:
             # Compute attention scores
             att = (q @ k.transpose(-2, -1)) / (q.size(-1) ** 0.5)  # (B, nh, T, T)          
             # Apply causal mask
             self.mask = self.mask.to(att.device)
             att = att.masked_fill(self.mask[:, :, :T, :T] == 0, -1e9)
+            att = F.softmax(att, dim=-1)  # (B, nh, T, T)
             # Apply attention to the values
             y = att @ v  # (B, nh, T, T) x (B, nh, T, hs) -> (B, nh, T, hs)
         y = y.transpose(1, 2).contiguous().view(B, T, C) # re-assemble all head outputs side by side
