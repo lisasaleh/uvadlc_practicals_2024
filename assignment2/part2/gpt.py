@@ -425,12 +425,13 @@ class GPT(nn.Module):
                             (batch_size, sequence_length, vocabulary_size).
         """
         device = idx.device
+        idx = idx.to(device)  # Ensure that the input idx is on the same device as the model
         b, t = idx.size()
         assert t <= self.block_size, f"Cannot forward sequence of length {t}, block size is only {self.block_size}"
 
         # Forward token and position embedders
         # token embeddings of shape (b, t, n_embd)
-        tok_emb = self.transformer.w_token_emb(idx)
+        tok_emb = self.transformer.w_token_emb(idx.to(device))  # Ensure embeddings are on the same device
         # apply dropout to the tokens
         tok_emb = self.transformer.drop(tok_emb)
         
