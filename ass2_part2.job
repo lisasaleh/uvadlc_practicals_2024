@@ -2,7 +2,7 @@
 
 #SBATCH --partition=gpu_mig
 #SBATCH --gpus=1
-#SBATCH --job-name=ExampleJob
+#SBATCH --job-name=GPT_model
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=9
 #SBATCH --time=04:00:00
@@ -19,6 +19,7 @@ cd $HOME/uvadlc_practicals_2024/assignment2/part2
 source activate dl2024
 
 export CUDA_LAUNCH_BLOCKING=1
+export TORCH_USE_CUDA_DSA=1
 
 # Define all conv_types to run
 srun python train.py --compile --num_epochs 5 --precision 32

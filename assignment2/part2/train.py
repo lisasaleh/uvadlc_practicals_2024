@@ -25,7 +25,8 @@ class GPTLightningModule(pl.LightningModule):
         
         if config.compile:
             model = torch.compile(model)
-        self.model = model.to(self.device)  # Move model to the appropriate device
+        
+        self.model = model
         
         self.train_dataset = train_dataset
         print("running on device", self.device)

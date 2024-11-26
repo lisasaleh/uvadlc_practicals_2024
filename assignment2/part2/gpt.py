@@ -522,12 +522,21 @@ class GPT(nn.Module):
                     sorted_probs = sorted_probs / sorted_probs.sum(dim=-1, keepdim=True)
                     probs = torch.zeros_like(probs).scatter(dim=-1, index=sorted_indices, src=sorted_probs)
                 
-                probs = torch.clamp(probs, min=1e-9)  # Ensure no zero probabilities or NaNs
+                print(probs.shape)  # Should be (batch_size, vocab_size)
+                if torch.any(torch.isnan(probs)) or torch.any(torch.isinf(probs)):
+                    print("Warning: NaN or Inf found in probabilities here")
+                    probs = torch.clamp(probs, min=1e-9)
+                if torch.any(probs < 0):
+                    print("Warning: Negative values found in probabilities here")
+                    probs = torch.abs(probs)  # Optional: Ensure no negative values
                 idx_next = torch.multinomial(probs, num_samples=1)  # (b, 1)
             
             if torch.any(torch.isnan(probs)) or torch.any(torch.isinf(probs)):
                 print("Warning: NaN or Inf found in probabilities")
                 probs = torch.clamp(probs, min=1e-9)
+            if torch.any(probs < 0):
+                print("Warning: Negative values found in probabilities")
+                probs = torch.abs(probs)  # Optional: Ensure no negative values
             # append sampled index to the running sequence and continue
             idx = torch.cat((idx, idx_next), dim=1)
         
