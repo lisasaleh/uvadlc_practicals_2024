@@ -428,7 +428,7 @@ class GPT(nn.Module):
         print(f"Input tensor device before moving: {idx.device}")  # Debugging: Print device of input tensor
         device = idx.device
         print(f"Input tensor device after moving: {idx.device}")  # Debugging: Print device of input tensor after moving        b, t = idx.size()
-        assert t <= self.block_size, f"Cannot forward sequence of length {t}, block size is only {self.block_size}"
+        assert <= self.block_size, f"Cannot forward sequence of length {t}, block size is only {self.block_size}"
 
         # Forward token and position embedders
         # token embeddings of shape (b, t, n_embd)
