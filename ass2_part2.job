@@ -13,7 +13,7 @@ module load 2023
 module load Anaconda3/2023.07-2
 
 # Change to the directory where the script is located
-cd $HOME/uvadlc_practicals_2024/assignment2/part1/exercise1.1
+cd $HOME/uvadlc_practicals_2024/assignment2/part2
 
 # Activate your environment
 source activate dl2024
