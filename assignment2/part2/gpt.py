@@ -505,6 +505,7 @@ class GPT(nn.Module):
             else:
                 # apply softmax to convert logits to (normalized) probabilities
                 probs = F.softmax(logits, dim=-1)  # (b, vocab_size)
+                probs = torch.clamp(probs, min=1e-9)  # Ensure no zero probabilities or NaNs
 
                 # optionally only consider top-k logits for sampling. 
                 if top_k is not None:
