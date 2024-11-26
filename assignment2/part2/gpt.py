@@ -424,9 +424,10 @@ class GPT(nn.Module):
                             vocabulary at each position in the sequence. The shape of the logits tensor is 
                             (batch_size, sequence_length, vocabulary_size).
         """
+        device = next(self.parameters()).device  # Get device of the model parameters (automatically handles GPU/CPU)
+        print(f"Input tensor device before moving: {idx.device}")  # Debugging: Print device of input tensor
         device = idx.device
-        print(f"Input tensor device: {device}")  # Debugging: Print device of input tensor
-        b, t = idx.size()
+        print(f"Input tensor device after moving: {idx.device}")  # Debugging: Print device of input tensor after moving        b, t = idx.size()
         assert t <= self.block_size, f"Cannot forward sequence of length {t}, block size is only {self.block_size}"
 
         # Forward token and position embedders
