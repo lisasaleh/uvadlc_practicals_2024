@@ -113,9 +113,10 @@ class CausalSelfAttention(nn.Module):
         Returns:
             Tuple[torch.Tensor, torch.Tensor]: Tuple containing the modified query and key tensors.
         """
+        device = xq.device  # Device of the input tensor xq (could be CPU or GPU)
         # Generate RoPE embeddings dynamically based on T
-        seq_pos = torch.arange(T, device=xq.device, dtype=self.inv_freq.dtype).unsqueeze(-1)  # Shape: (T, 1)
-        freqs = torch.einsum("i,j->ij", seq_pos.squeeze(), self.inv_freq)  # Shape: (T, dim // 2)
+        seq_pos = torch.arange(T, device=device, dtype=self.inv_freq.dtype).unsqueeze(-1)  # Shape: (T, 1)
+        freqs = torch.einsum("i,j->ij", seq_pos.squeeze(), self.inv_freq.to(device))  # Shape: (T, dim // 2)
         pos_emb = torch.cat((freqs.sin(), freqs.cos()), dim=-1).unsqueeze(0).unsqueeze(0)  # Shape: (1, 1, T, dim)
         
         # Split pos into sin and cos components, repeating each to match xq and xk dimensions
@@ -143,6 +144,8 @@ class CausalSelfAttention(nn.Module):
 
         # calculate query, key, values for all heads in batch and move head forward to be the batch dim
         # Split output of attention-head in query, key and value
+        device = x.device  # Device of the input tensor x
+
         qkv  = self.c_attn(x)  # Shape: (B, T, 3 * C)
         q, k, v = qkv.split(self.n_embd, dim=2)  # Each of shape (B, T, C)
         
@@ -165,7 +168,7 @@ class CausalSelfAttention(nn.Module):
             # Compute attention scores
             att = (q @ k.transpose(-2, -1)) / (q.size(-1) ** 0.5)  # (B, nh, T, T)          
             # Apply causal mask
-            self.mask = self.mask.to(att.device)
+            self.mask = self.mask.to(device)
             att = att.masked_fill(self.mask[:, :, :T, :T] == 0, -1e9)
             att = F.softmax(att, dim=-1)  # (B, nh, T, T)
             # Apply attention to the values
@@ -483,7 +486,9 @@ class GPT(nn.Module):
                                 tokens, with shape (batch size, sequence length + max_new_tokens).
         """
         assert not (top_k and top_p), "You can only use one of top_k or top_p sampling"
-        
+        device = idx.device  # Capture the device of the input tensor
+        self.to(device)
+
         for _ in range(max_new_tokens):
             # if the sequence context is growing too long we must crop it at block_size
             idx_cond = idx if idx.size(1) <= self.block_size else idx[:, -self.block_size:]
