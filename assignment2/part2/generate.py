@@ -15,7 +15,7 @@ class GPTLightningModule(pl.LightningModule):
         self.model = model
         self.dataset = dataset
         #self.train_dataset = train_dataset
-        print("running on device", self.device)
+        #print("running on device", self.device)
     
     def forward(self, x):
         # Forward pass through the model
@@ -59,7 +59,6 @@ def generate(
     dix = model.dataset.tokenizer.encode(prompt)
     # return as tensors
     x = torch.tensor(dix, dtype=torch.long).to(device).unsqueeze(0)
-    
     
     # we'll process all desired num_samples in a batch, so expand out the batch dim
     x = x.expand(num_samples, -1)

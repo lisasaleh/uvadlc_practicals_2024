@@ -25,9 +25,7 @@ class GPTLightningModule(pl.LightningModule):
         
         if config.compile:
             model = torch.compile(model)
-        
-        self.model = model
-        
+                
         self.train_dataset = train_dataset
         print("running on device", self.device)
 
@@ -117,7 +115,7 @@ class GPTLightningModule(pl.LightningModule):
             )
         else:
             context = 'Yesterday I went ' if prompt == '' else prompt
-            x = torch.tensor(self.train_dataset.tokenizer.encode(context), dtype=torch.long)[None,...].to(self.config.device)
+            x = torch.tensor(self.train_dataset.tokenizer.encode(context), dtype=torch.long)[None,...]
             y = self.model.generate(x, n_steps, temperature=1.0, do_sample=do_sample, top_k=top_k, top_p=top_p)[0]
             decoded_outputs = self.train_dataset.tokenizer.decode(y.tolist())
         return decoded_outputs
