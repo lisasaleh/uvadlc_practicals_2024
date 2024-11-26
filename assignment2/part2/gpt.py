@@ -487,8 +487,9 @@ class GPT(nn.Module):
         """
         assert not (top_k and top_p), "You can only use one of top_k or top_p sampling"
         device = idx.device  # Capture the device of the input tensor
-        if self.device != device:
+        if next(self.parameters()).device != device:
             self.to(device)
+
 
         for _ in range(max_new_tokens):
             # if the sequence context is growing too long we must crop it at block_size
