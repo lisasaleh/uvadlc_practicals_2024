@@ -487,7 +487,8 @@ class GPT(nn.Module):
         """
         assert not (top_k and top_p), "You can only use one of top_k or top_p sampling"
         device = idx.device  # Capture the device of the input tensor
-        self.to(device)
+        if self.device != device:
+            self.to(device)
 
         for _ in range(max_new_tokens):
             # if the sequence context is growing too long we must crop it at block_size
@@ -505,7 +506,6 @@ class GPT(nn.Module):
             else:
                 # apply softmax to convert logits to (normalized) probabilities
                 probs = F.softmax(logits, dim=-1)  # (b, vocab_size)
-                probs = torch.clamp(probs, min=1e-9)  # Ensure no zero probabilities or NaNs
 
                 # optionally only consider top-k logits for sampling. 
                 if top_k is not None:
@@ -521,7 +521,12 @@ class GPT(nn.Module):
                     sorted_probs = sorted_probs / sorted_probs.sum(dim=-1, keepdim=True)
                     probs = torch.zeros_like(probs).scatter(dim=-1, index=sorted_indices, src=sorted_probs)
                 
+                probs = torch.clamp(probs, min=1e-9)  # Ensure no zero probabilities or NaNs
                 idx_next = torch.multinomial(probs, num_samples=1)  # (b, 1)
+            
+            if torch.any(torch.isnan(probs)) or torch.any(torch.isinf(probs)):
+                print("Warning: NaN or Inf found in probabilities")
+                probs = torch.clamp(probs, min=1e-9)
             # append sampled index to the running sequence and continue
             idx = torch.cat((idx, idx_next), dim=1)
         
