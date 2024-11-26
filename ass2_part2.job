@@ -18,5 +18,7 @@ cd $HOME/uvadlc_practicals_2024/assignment2/part2
 # Activate your environment
 source activate dl2024
 
+export CUDA_LAUNCH_BLOCKING=1
+
 # Define all conv_types to run
 srun python train.py --compile --num_epochs 5 --precision 32
