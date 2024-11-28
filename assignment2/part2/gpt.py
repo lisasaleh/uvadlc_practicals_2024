@@ -496,9 +496,12 @@ class GPT(nn.Module):
         """
         assert not (top_k and top_p), "You can only use one of top_k or top_p sampling"
         print(f"Initial idx device: {idx.device}")  # Check the device of idx before processing.
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")       
+        idx.to(device)
+        print(f"After first move idx device: {idx.device}")  # Check the device of idx before processing.
+
 
         for _ in range(max_new_tokens):
-            device = torch.device("cuda" if torch.cuda.is_available() else "cpu")       
             # if the sequence context is growing too long we must crop it at block_size
             idx_cond = idx if idx.size(1) <= self.block_size else idx[:, -self.block_size:]
 
