@@ -497,7 +497,7 @@ class GPT(nn.Module):
         assert not (top_k and top_p), "You can only use one of top_k or top_p sampling"
         print(f"Initial idx device: {idx.device}")  # Check the device of idx before processing.
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")       
-        idx.to(device)
+        idx = idx.to(device)
         print(f"After first move idx device: {idx.device}")  # Check the device of idx before processing.
 
 
@@ -548,8 +548,8 @@ class GPT(nn.Module):
                 print("Warning: Negative values found in probabilities")
                 probs = torch.abs(probs)  # Optional: Ensure no negative values
             # append sampled index to the running sequence and continue
-            idx_next.to(device)
-            idx.to(device)
+            idx_next = idx_next.to(device)
+            idx = idx.to(device)
             print(f"IDX device: {idx.device}")  # Debugging: Print device of token embeddings
             print(f"IDX  next device: {idx_next.device}")  # Debugging: Print device of token embeddings
             idx = torch.cat((idx, idx_next), dim=1)
