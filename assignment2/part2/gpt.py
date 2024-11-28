@@ -545,6 +545,9 @@ class GPT(nn.Module):
                 probs = torch.abs(probs)  # Optional: Ensure no negative values
             # append sampled index to the running sequence and continue
             idx_next.to(device)
+            idx.to(device)
+            print(f"IDX device: {idx.device}")  # Debugging: Print device of token embeddings
+            print(f"IDX  next device: {idx_next.device}")  # Debugging: Print device of token embeddings
             idx = torch.cat((idx, idx_next), dim=1)
         
         return idx
