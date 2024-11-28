@@ -497,6 +497,7 @@ class GPT(nn.Module):
         assert not (top_k and top_p), "You can only use one of top_k or top_p sampling"
 
         for _ in range(max_new_tokens):
+            device = torch.device("cuda" if torch.cuda.is_available() else "cpu")       
             # if the sequence context is growing too long we must crop it at block_size
             idx_cond = idx if idx.size(1) <= self.block_size else idx[:, -self.block_size:]
 
@@ -543,6 +544,7 @@ class GPT(nn.Module):
                 print("Warning: Negative values found in probabilities")
                 probs = torch.abs(probs)  # Optional: Ensure no negative values
             # append sampled index to the running sequence and continue
+            idx_next.to(device)
             idx = torch.cat((idx, idx_next), dim=1)
         
         return idx
