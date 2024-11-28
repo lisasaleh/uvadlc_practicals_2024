@@ -495,6 +495,7 @@ class GPT(nn.Module):
                                 tokens, with shape (batch size, sequence length + max_new_tokens).
         """
         assert not (top_k and top_p), "You can only use one of top_k or top_p sampling"
+        print(f"Initial idx device: {idx.device}")  # Check the device of idx before processing.
 
         for _ in range(max_new_tokens):
             device = torch.device("cuda" if torch.cuda.is_available() else "cpu")       
