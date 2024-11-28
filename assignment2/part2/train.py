@@ -28,7 +28,7 @@ class GPTLightningModule(pl.LightningModule):
         
         self.model = model  # Assign the model here properly
         self.train_dataset = train_dataset
-        print("running on device", self.device)
+        print("running on device", self.config.device)
 
         # Unpack config hparams
         # NOTE: LearningRateFinder callback needs access to a self.lr
