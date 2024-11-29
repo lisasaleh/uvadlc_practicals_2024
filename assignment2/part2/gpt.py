@@ -503,13 +503,13 @@ class GPT(nn.Module):
                 # take the most likely token
                 idx_next = torch.argmax(logits, dim=-1, keepdim=True)  # (b, 1)            
             else:
-                print(f"Logits before softmax and clamp: {logits}")
-                logits = torch.clamp(logits, min=-10, max=10)  # Prevent extreme values
-                print(f"Logits before softmax and after clamp: {logits}")
-                # apply softmax to convert logits to (normalized) probabilities
-                probs = F.softmax(logits, dim=-1)  # (b, vocab_size)
+                # Log-sum-exp trick for numerical stability
+                logits_max = logits.max(dim=-1, keepdim=True)[0]  # Find max logits per row for numerical stability
+                logits_stable = logits - logits_max  # Subtract the max logits to avoid extreme values
+                probs = F.softmax(logits_stable, dim=-1)  # Apply softmax on stabilized logits
                 print(f"Probabilities after softmax: {probs}")
                 print(f"Sum of probabilities per row: {probs.sum(dim=-1)}")
+
 
                 # optionally only consider top-k logits for sampling. 
                 if top_k is not None:
