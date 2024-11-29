@@ -503,7 +503,9 @@ class GPT(nn.Module):
                 # take the most likely token
                 idx_next = torch.argmax(logits, dim=-1, keepdim=True)  # (b, 1)            
             else:
-                print(f"Logits before softmax: {logits}")
+                print(f"Logits before softmax and clamp: {logits}")
+                logits = torch.clamp(logits, min=-10, max=10)  # Prevent extreme values
+                print(f"Logits before softmax and after clamp: {logits}")
                 # apply softmax to convert logits to (normalized) probabilities
                 probs = F.softmax(logits, dim=-1)  # (b, vocab_size)
                 print(f"Probabilities after softmax: {probs}")
