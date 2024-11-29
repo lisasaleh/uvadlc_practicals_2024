@@ -507,15 +507,12 @@ class GPT(nn.Module):
                 logits_max = logits.max(dim=-1, keepdim=True)[0]  # Find max logits per row for numerical stability
                 logits_stable = logits - logits_max  # Subtract the max logits to avoid extreme values
                 probs = F.softmax(logits_stable, dim=-1)  # Apply softmax on stabilized logits
-                print(f"Probabilities after softmax: {probs}")
-                print(f"Sum of probabilities per row: {probs.sum(dim=-1)}")
 
-                # optionally only consider top-k logits for sampling. 
+                # Optionally only consider top-k logits for sampling. 
                 if top_k is not None:
                     top_k_vals, _ = torch.topk(probs, top_k, dim=-1)
                     probs[probs < top_k_vals[:, [-1]]] = 0
                     probs = probs / probs.sum(dim=-1, keepdim=True)
-                    print(f"Probabilities after top_k: {probs}")
 
                 # Optionally apply top-p sampling
                 if top_p is not None:
@@ -543,7 +540,6 @@ class GPT(nn.Module):
                                     
                 if torch.any(torch.isnan(probs)) or torch.any(torch.isinf(probs)):
                     print("Warning: NaN or Inf found in probabilities here")
-                    print(f"Probs with Nan: {probs}")
                     probs = torch.clamp(probs, min=1e-9)
                 if torch.any(probs < 0):
                     print("Warning: Negative values found in probabilities here")
