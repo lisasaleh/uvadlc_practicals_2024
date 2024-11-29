@@ -425,25 +425,19 @@ class GPT(nn.Module):
                             (batch_size, sequence_length, vocabulary_size).
         """
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")       
-        print(f"Device that is available: {device}")  # Debugging: Print device of input tensor
-        print(f"Input tensor device before moving: {idx.device}")  # Debugging: Print device of input tensor
         idx = idx.to(device)
-        print(f"Input tensor device after moving: {idx.device}")  # Debugging: Print device of input tensor after moving       
         b, t = idx.size()
         assert t <= self.block_size, f"Cannot forward sequence of length {t}, block size is only {self.block_size}"
 
         # Forward token and position embedders
         # token embeddings of shape (b, t, n_embd)
         tok_emb = self.transformer.w_token_emb(idx)  # Ensure embeddings are on the same device
-        print(f"Token embeddings device: {tok_emb.device}")  # Debugging: Print device of token embeddings
         # apply dropout to the tokens
         tok_emb = self.transformer.drop(tok_emb)
         
         if self.config.abs_emb:
             pos = torch.arange(0, t, dtype=torch.long, device=device).unsqueeze(0) # shape (1, t)
-            print(f"Position tensor device: {pos.device}")  # Debugging: Print device of position tensor
             pos_emb = self.transformer.w_pos_emb(pos)
-            print(f"Position embeddings device: {pos_emb.device}")  # Debugging: Print device of position embeddings
             x = tok_emb + pos_emb
         else:
             x = tok_emb
@@ -451,13 +445,10 @@ class GPT(nn.Module):
         # Iterate through the transformer blocks
         for block in self.transformer.h:
             x = block(x)    # Shape remains (b, t, n_embd)
-        print(f"Block output device: {x.device}")  # Debugging: Print device of block output
 
         # Apply final layer normalization and linear layer to produce logits
         x = self.transformer.ln_f(x)  # Shape: (b, t, n_embd)
-        print(f"After layer normalization device: {x.device}")  # Debugging: Print device after layer normalization
         logits = self.lm_head(x)  # Project to vocab size
-        print(f"Logits device: {logits.device}")  # Debugging: Print device of final logits
 
         return logits
 
@@ -495,11 +486,8 @@ class GPT(nn.Module):
                                 tokens, with shape (batch size, sequence length + max_new_tokens).
         """
         assert not (top_k and top_p), "You can only use one of top_k or top_p sampling"
-        print(f"Initial idx device: {idx.device}")  # Check the device of idx before processing.
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")       
         idx = idx.to(device)
-        print(f"After first move idx device: {idx.device}")  # Check the device of idx before processing.
-
 
         for _ in range(max_new_tokens):
             # if the sequence context is growing too long we must crop it at block_size
@@ -515,8 +503,11 @@ class GPT(nn.Module):
                 # take the most likely token
                 idx_next = torch.argmax(logits, dim=-1, keepdim=True)  # (b, 1)            
             else:
+                print(f"Logits before softmax: {logits}")
                 # apply softmax to convert logits to (normalized) probabilities
                 probs = F.softmax(logits, dim=-1)  # (b, vocab_size)
+                print(f"Probabilities after softmax: {probs}")
+                print(f"Sum of probabilities per row: {probs.sum(dim=-1)}")
 
                 # optionally only consider top-k logits for sampling. 
                 if top_k is not None:
@@ -532,7 +523,6 @@ class GPT(nn.Module):
                     sorted_probs = sorted_probs / sorted_probs.sum(dim=-1, keepdim=True)
                     probs = torch.zeros_like(probs).scatter(dim=-1, index=sorted_indices, src=sorted_probs)
                 
-                print(probs.shape)  # Should be (batch_size, vocab_size)
                 if torch.any(torch.isnan(probs)) or torch.any(torch.isinf(probs)):
                     print("Warning: NaN or Inf found in probabilities here")
                     probs = torch.clamp(probs, min=1e-9)
@@ -550,8 +540,6 @@ class GPT(nn.Module):
             # append sampled index to the running sequence and continue
             idx_next = idx_next.to(device)
             idx = idx.to(device)
-            print(f"IDX device: {idx.device}")  # Debugging: Print device of token embeddings
-            print(f"IDX  next device: {idx_next.device}")  # Debugging: Print device of token embeddings
             idx = torch.cat((idx, idx_next), dim=1)
         
         return idx
