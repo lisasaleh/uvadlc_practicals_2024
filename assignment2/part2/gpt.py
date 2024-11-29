@@ -517,19 +517,31 @@ class GPT(nn.Module):
                     probs = probs / probs.sum(dim=-1, keepdim=True)
                     print(f"Probabilities after top_k: {probs}")
 
-                # optionally apply top-p sampling
+                # Optionally apply top-p sampling
                 if top_p is not None:
                     sorted_probs, sorted_indices = torch.sort(probs, descending=True, dim=-1)
-                    print(f"Probabilities sorted: {sorted_probs}")
                     cumulative_probs = torch.cumsum(sorted_probs, dim=-1)
-                    print(f"Cum probs: {cumulative_probs}")
+                    # Apply the top-p threshold
                     sorted_probs[cumulative_probs > top_p] = 0
-                    print(f"Sorted probs but after setting it all to 0: {probs}")
-                    sorted_probs = sorted_probs / sorted_probs.sum(dim=-1, keepdim=True)
-                    probs.scatter_(dim=-1, index=sorted_indices, src=sorted_probs)
+                    # Calculate the sum of probabilities after filtering
+                    total_prob = sorted_probs.sum(dim=-1, keepdim=True)
+                    # Check if the sum is zero to avoid dividing by zero
+                    if torch.any(total_prob == 0):
+                        print("Warning: No valid probabilities left after top-p filtering.")
+                        # Fallback to selecting the most probable token (e.g., select the highest probability token)
+                        sorted_probs = torch.zeros_like(sorted_probs)
+                        sorted_probs[:, 0] = 1  # Set the highest probability token to 1
+                    else:
+                        # Renormalize probabilities only if the sum is not zero
+                        sorted_probs = sorted_probs / total_prob
+
+                    # Scatter the renormalized probabilities back into the original probabilities tensor
+                    probs = torch.zeros_like(probs).scatter(dim=-1, index=sorted_indices, src=sorted_probs)
+
+                    # Debugging: Print top-p probabilities
                     print(f"Probabilities after top-p: {probs}")
                                     
-                    if torch.any(torch.isnan(probs)) or torch.any(torch.isinf(probs)):
+                if torch.any(torch.isnan(probs)) or torch.any(torch.isinf(probs)):
                     print("Warning: NaN or Inf found in probabilities here")
                     print(f"Probs with Nan: {probs}")
                     probs = torch.clamp(probs, min=1e-9)
