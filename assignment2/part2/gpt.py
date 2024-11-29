@@ -510,7 +510,6 @@ class GPT(nn.Module):
                 print(f"Probabilities after softmax: {probs}")
                 print(f"Sum of probabilities per row: {probs.sum(dim=-1)}")
 
-
                 # optionally only consider top-k logits for sampling. 
                 if top_k is not None:
                     top_k_vals, _ = torch.topk(probs, top_k, dim=-1)
@@ -521,13 +520,16 @@ class GPT(nn.Module):
                 # optionally apply top-p sampling
                 if top_p is not None:
                     sorted_probs, sorted_indices = torch.sort(probs, descending=True, dim=-1)
+                    print(f"Probabilities sorted: {sorted_probs}")
                     cumulative_probs = torch.cumsum(sorted_probs, dim=-1)
+                    print(f"Cum probs: {cumulative_probs}")
                     sorted_probs[cumulative_probs > top_p] = 0
+                    print(f"Sorted probs but after setting it all to 0: {probs}")
                     sorted_probs = sorted_probs / sorted_probs.sum(dim=-1, keepdim=True)
-                    probs = torch.zeros_like(probs).scatter(dim=-1, index=sorted_indices, src=sorted_probs)
+                    probs.scatter_(dim=-1, index=sorted_indices, src=sorted_probs)
                     print(f"Probabilities after top-p: {probs}")
-                
-                if torch.any(torch.isnan(probs)) or torch.any(torch.isinf(probs)):
+                                    
+                    if torch.any(torch.isnan(probs)) or torch.any(torch.isinf(probs)):
                     print("Warning: NaN or Inf found in probabilities here")
                     print(f"Probs with Nan: {probs}")
                     probs = torch.clamp(probs, min=1e-9)
