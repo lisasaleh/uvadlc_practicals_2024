@@ -516,6 +516,7 @@ class GPT(nn.Module):
                     top_k_vals, _ = torch.topk(probs, top_k, dim=-1)
                     probs[probs < top_k_vals[:, [-1]]] = 0
                     probs = probs / probs.sum(dim=-1, keepdim=True)
+                    print(f"Probabilities after top_k: {probs}")
 
                 # optionally apply top-p sampling
                 if top_p is not None:
@@ -524,9 +525,11 @@ class GPT(nn.Module):
                     sorted_probs[cumulative_probs > top_p] = 0
                     sorted_probs = sorted_probs / sorted_probs.sum(dim=-1, keepdim=True)
                     probs = torch.zeros_like(probs).scatter(dim=-1, index=sorted_indices, src=sorted_probs)
+                    print(f"Probabilities after top-p: {probs}")
                 
                 if torch.any(torch.isnan(probs)) or torch.any(torch.isinf(probs)):
                     print("Warning: NaN or Inf found in probabilities here")
+                    print(f"Probs with Nan: {probs}")
                     probs = torch.clamp(probs, min=1e-9)
                 if torch.any(probs < 0):
                     print("Warning: Negative values found in probabilities here")
