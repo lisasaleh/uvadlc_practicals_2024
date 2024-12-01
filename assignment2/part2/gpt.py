@@ -257,7 +257,9 @@ class GPT(nn.Module):
         assert config.block_size is not None
         self.config = config
         self.block_size = config.block_size
-
+        
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        
         # Check whether either the type is given or the params are given. (With XOR)
         type_given = config.model_type is not None
         params_given = all([config.n_layer is not None, config.n_head is not None, config.n_embd is not None])
@@ -293,13 +295,13 @@ class GPT(nn.Module):
 
         # Creation transformer
         self.transformer = nn.ModuleDict(dict(
-            w_token_emb = nn.Embedding(config.vocab_size, config.n_embd),
-            w_pos_emb = nn.Embedding(config.block_size, config.n_embd), #in this assignment, you have to instead use the rotary positional embeddings, but we keep the placeholder if you want to use the pre-trained model
+            w_token_emb = nn.Embedding(config.vocab_size, config.n_embd).to(device),
+            w_pos_emb = nn.Embedding(config.block_size, config.n_embd).to(device),  # Ensure positional embedding is on the same device
             drop = nn.Dropout(config.embd_pdrop),
             h = nn.ModuleList([TransformerDecoderBlock(config) for _ in range(config.n_layer)]),
-            ln_f = RMSNorm(config.n_embd),
+            ln_f = RMSNorm(config.n_embd).to(device),  # Move layer normalization to device as well
         ))
-        self.lm_head = nn.Linear(config.n_embd, config.vocab_size, bias=False)
+        self.lm_head = nn.Linear(config.n_embd, config.vocab_size, bias=False).to(device)
 
         # init all weights, and apply a special scaled init to the residual projections, per GPT-2 paper
         self.apply(self._init_weights)
@@ -491,14 +493,13 @@ class GPT(nn.Module):
         idx = idx.to(device)
 
         for _ in range(max_new_tokens):
-            device = torch.device("cuda" if torch.cuda.is_available() else "cpu")       
 
             # if the sequence context is growing too long we must crop it at block_size
             idx = idx.to(device)
             idx_cond = idx if idx.size(1) <= self.block_size else idx[:, -self.block_size:]
 
-            idx_cond = idx_cond.to(device)
-            # forward the model to get the logits for the index in the sequence
+            idx_cond = idx_cond.to(device)     
+             # forward the model to get the logits for the index in the sequence
             logits = self(idx_cond)  # (b, t, vocab_size)
             # pluck the logits at the final step and scale by desired temperature
             logits = logits[:, -1, :]  # (b, vocab_size)
