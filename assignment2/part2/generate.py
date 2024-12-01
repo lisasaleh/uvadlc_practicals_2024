@@ -100,9 +100,6 @@ if __name__ == "__main__":
 
     # Load model weights
     model_weights_folder = args.model_weights_folder
-    if not os.path.exists(model_weights_folder):
-        os.makedirs(model_weights_folder)
-        print(f"Created model weights folder: {model_weights_folder}")
     model_weights_path = os.path.join(model_weights_folder, sorted(os.listdir(model_weights_folder))[-1])
     state_dict = torch.load(model_weights_path)
 
