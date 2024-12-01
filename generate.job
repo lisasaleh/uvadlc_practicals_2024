@@ -22,5 +22,4 @@ export CUDA_LAUNCH_BLOCKING=1
 export TORCH_USE_CUDA_DSA=1
 
 
-srun python generate.py --prompt "Once upon a time, there was a knight" --do_sample
-srun python generate.py --prompt "Once upon a time, there was a knight"
+srun python generate.py --prompt "Once upon a time, there was a knight" --do_sample True
