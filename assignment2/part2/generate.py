@@ -98,8 +98,12 @@ if __name__ == "__main__":
     
     pl.seed_everything(args.seed) 
 
-    # Load model weights    
-    model_weights_path = os.path.join(args.model_weights_folder, sorted(os.listdir(args.model_weights_folder))[-1])
+    # Load model weights
+    model_weights_folder = args.model_weights_folder
+    if not os.path.exists(model_weights_folder):
+        os.makedirs(model_weights_folder)
+        print(f"Created model weights folder: {model_weights_folder}")
+    model_weights_path = os.path.join(model_weights_folder, sorted(os.listdir(model_weights_folder))[-1])
     state_dict = torch.load(model_weights_path)
 
     # Clean up state dict keys by removing '_orig_mod' prefix if present due to torch.compile()
