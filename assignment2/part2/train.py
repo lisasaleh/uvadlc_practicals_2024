@@ -180,7 +180,7 @@ def train(args):
     logger = TensorBoardLogger(args.log_dir, name=args.model_type)
 
     # Create generate callback
-    save_callback = ModelCheckpoint(save_weights_only=True, mode="min", monitor="train_loss")
+    save_callback = ModelCheckpoint(save_weights_only=True, mode="min", monitor="train_loss", dirpath="./logs")
     lr_callback = LearningRateFinder()
 
     if "16" in args.precision:
