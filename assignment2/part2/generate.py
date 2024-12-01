@@ -82,7 +82,7 @@ if __name__ == "__main__":
 
     args = get_config()
     parser = argparse.ArgumentParser()
-    parser.add_argument('--model_weights_folder', type=str, default='./logs/gpt-mini/')
+    parser.add_argument('--model_weights_folder', type=str, default='./logs/gpt-mini/version_38/checkpoints')
     parser.add_argument('--num_samples', type=int, default=10)
     parser.add_argument('--num_generated_tokens', type=int, default=77)
     parser.add_argument('--do_sample', type=bool, default=True)
@@ -96,15 +96,11 @@ if __name__ == "__main__":
         setattr(args, key, value)
     
     pl.seed_everything(args.seed) 
+    
     # Define the path to the log directory
     model_weights_folder = args.model_weights_folder  
 
-    # List all directories in the model_weights_folder and find the latest version
-    version_dirs = [d for d in os.listdir(model_weights_folder) if d.startswith('version_')]
-    latest_version_dir = max(version_dirs, key=lambda x: int(x.split('_')[1]))
-
     # Now use the latest version directory to get the checkpoint files
-    model_weights_folder = os.path.join(model_weights_folder, latest_version_dir)
     model_weights_path = os.path.join(model_weights_folder, sorted(os.listdir(model_weights_folder))[-1])
 
     # Check if weights path exists before trying to load
