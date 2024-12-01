@@ -485,7 +485,10 @@ class GPT(nn.Module):
             torch.LongTensor: The tensor of token indices including the original and the newly generated 
                                 tokens, with shape (batch size, sequence length + max_new_tokens).
         """
-        assert not (top_k and top_p), "You can only use one of top_k or top_p sampling"
+        # assert not (top_k and top_p), "You can only use one of top_k or top_p sampling"
+        assert top_k is not None, "top_k must be provided for top-k sampling"
+        assert top_p is None, "top_p sampling is disabled, only top_k should be used."
+        
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")       
         idx = idx.to(device)
 
@@ -534,9 +537,6 @@ class GPT(nn.Module):
 
                     # Scatter the renormalized probabilities back into the original probabilities tensor
                     probs = torch.zeros_like(probs).scatter(dim=-1, index=sorted_indices, src=sorted_probs)
-
-                    # Debugging: Print top-p probabilities
-                    print(f"Probabilities after top-p: {probs}")
                                     
                 if torch.any(torch.isnan(probs)) or torch.any(torch.isinf(probs)):
                     print("Warning: NaN or Inf found in probabilities here")
