@@ -22,4 +22,4 @@ export CUDA_LAUNCH_BLOCKING=1
 export TORCH_USE_CUDA_DSA=1
 
 # Define all conv_types to run
-srun python train.py --compile --num_epochs 5 --precision 32
+srun python train.py --compile --num_epochs 5

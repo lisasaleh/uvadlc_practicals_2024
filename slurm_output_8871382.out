@@ -1,0 +1,47 @@
+============================================================================================== 
+Warning! Mixing Conda and module environments may lead to corruption of the
+user environment. 
+We do not recommend users mixing those two environments unless absolutely
+necessary. Note that 
+SURF does not provide any support for Conda environment.
+For more information, please refer to our software policy page:
+https://servicedesk.surf.nl/wiki/display/WIKI/Software+policy+Snellius#SoftwarepolicySnellius-UseofAnacondaandMinicondaenvironmentsonSnellius 
+
+Remember that many packages have already been installed on the system and can
+be loaded using 
+the 'module load <package__name>' command. If you are uncertain if a package is
+already available 
+on the system, please use 'module avail' or 'module spider' to search for it.
+============================================================================================== 
+usage: generate.py [-h] [--model_weights_folder MODEL_WEIGHTS_FOLDER]
+                   [--num_samples NUM_SAMPLES]
+                   [--num_generated_tokens NUM_GENERATED_TOKENS]
+                   [--do_sample DO_SAMPLE] [--temperature TEMPERATURE]
+                   [--top_k TOP_K] [--top_p TOP_P] [--prompt PROMPT]
+                   [--pretrained_tokenizer]
+generate.py: error: argument --do_sample: expected one argument
+srun: error: gcn7: task 0: Exited with exit code 2
+srun: Terminating StepId=8871382.0
+[rank: 0] Seed set to 0
+Created model weights folder: ./logs/gpt-mini/version_0/checkpoints
+Traceback (most recent call last):
+  File "/gpfs/home6/scur2773/uvadlc_practicals_2024/assignment2/part2/generate.py", line 106, in <module>
+    model_weights_path = os.path.join(model_weights_folder, sorted(os.listdir(model_weights_folder))[-1])
+                                                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^
+IndexError: list index out of range
+srun: error: gcn7: task 0: Exited with exit code 1
+srun: Terminating StepId=8871382.1
+
+JOB STATISTICS
+==============
+Job ID: 8871382
+Cluster: snellius
+User/Group: scur2773/scur2773
+State: FAILED (exit code 1)
+Nodes: 1
+Cores per node: 18
+CPU Utilized: 00:00:10
+CPU Efficiency: 2.92% of 00:05:42 core-walltime
+Job Wall-clock time: 00:00:19
+Memory Utilized: 2.21 MB
+Memory Efficiency: 0.00% of 120.00 GB
