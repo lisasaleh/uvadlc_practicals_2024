@@ -177,7 +177,7 @@ def train(args):
     lightning_model = GPTLightningModule(args, gpt_model, dataset)
 
     # Setup logger
-    logger = TensorBoardLogger(args.log_dir, name=args.model_type, version=args.run_version)
+    logger = TensorBoardLogger(args.log_dir, name=args.model_type)
 
     # Create generate callback
     save_callback = ModelCheckpoint(save_weights_only=True, mode="min", monitor="train_loss")
