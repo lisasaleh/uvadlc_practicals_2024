@@ -491,9 +491,13 @@ class GPT(nn.Module):
         idx = idx.to(device)
 
         for _ in range(max_new_tokens):
+            device = torch.device("cuda" if torch.cuda.is_available() else "cpu")       
+
             # if the sequence context is growing too long we must crop it at block_size
+            idx = idx.to(device)
             idx_cond = idx if idx.size(1) <= self.block_size else idx[:, -self.block_size:]
 
+            idx_cond = idx_cond.to(device)
             # forward the model to get the logits for the index in the sequence
             logits = self(idx_cond)  # (b, t, vocab_size)
             # pluck the logits at the final step and scale by desired temperature
