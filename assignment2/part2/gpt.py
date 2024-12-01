@@ -453,7 +453,7 @@ class GPT(nn.Module):
         return logits
 
     @torch.inference_mode()
-    def generate(self, idx: torch.LongTensor, max_new_tokens: int, temperature:float = 1.0, do_sample:bool = False, top_k:int = None, top_p: float = 0.6):
+    def generate(self, idx: torch.LongTensor, max_new_tokens: int, temperature:float = 1.0, do_sample:bool = True, top_k:int = None, top_p: float = 0.6):
         """
         Generates a sequence of tokens by autoregressively predicting new tokens based on the 
         provided context (idx). The generation process can be controlled by temperature, sampling 
@@ -485,9 +485,7 @@ class GPT(nn.Module):
             torch.LongTensor: The tensor of token indices including the original and the newly generated 
                                 tokens, with shape (batch size, sequence length + max_new_tokens).
         """
-        # assert not (top_k and top_p), "You can only use one of top_k or top_p sampling"
-        assert top_k is not None, "top_k must be provided for top-k sampling"
-        assert top_p is None, "top_p sampling is disabled, only top_k should be used."
+        assert not (top_k and top_p), "You can only use one of top_k or top_p sampling"
         
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")       
         idx = idx.to(device)
