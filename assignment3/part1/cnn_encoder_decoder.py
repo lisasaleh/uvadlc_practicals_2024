@@ -39,17 +39,18 @@ class CNNEncoder(nn.Module):
         # PUT YOUR CODE HERE  #
         #######################
         super().__init__()
+
         self.net = nn.Sequential(
             nn.Conv2d(num_input_channels, num_filters, kernel_size=3, stride=2, padding=1),  # 28x28 -> 14x14
             nn.ReLU(),
             nn.Conv2d(num_filters, num_filters * 2, kernel_size=3, stride=2, padding=1),  # 14x14 -> 7x7
             nn.ReLU(),
             nn.Conv2d(num_filters * 2, num_filters * 4, kernel_size=3, stride=2, padding=1),  # 7x7 -> 4x4
-            nn.ReLU()
+            nn.ReLU(),
         )
         self.flatten = nn.Flatten()
-        self.fc_mu = nn.Linear(num_filters * 4 * 4 * 4, z_dim)  # Fully connected layer for mean
-        self.fc_log_std = nn.Linear(num_filters * 4 * 4 * 4, z_dim)  # Fully connected layer for log_std
+        self.fc_mu = nn.Linear(num_filters * 4 * 4 * 4, z_dim)  # Mean of z
+        self.fc_log_std = nn.Linear(num_filters * 4 * 4 * 4, z_dim)  # Log std of z
         #######################
         # END OF YOUR CODE    #
         #######################
@@ -67,10 +68,10 @@ class CNNEncoder(nn.Module):
         #######################
         # PUT YOUR CODE HERE  #
         #######################
-        x = self.net(x)  # Pass through convolutional layers
-        x = self.flatten(x)  # Flatten to [B, -1]
+        x = self.net(x)  # Downsample and extract features
+        x = x.view(x.size(0), -1)  # Flatten features
         mean = self.fc_mu(x)  # Compute mean
-        log_std = self.fc_log_std(x)  # Compute log standard deviation
+        log_std = self.fc_log_std(x)  # Compute log std
         #######################
         # END OF YOUR CODE    #
         #######################
@@ -96,18 +97,15 @@ class CNNDecoder(nn.Module):
         #######################
         # PUT YOUR CODE HERE  #
         #######################
+        self.linear = nn.Linear(z_dim, num_filters * 4 * 4 * 4)  # Map latent vector z to feature map
+        
         self.net = nn.Sequential(
-            nn.ConvTranspose2d(2 * c_hid, 2 * c_hid, kernel_size=3, output_padding=0, padding=1, stride=2),  # 4x4 -> 8x8
-            act_fn(),
-            nn.Conv2d(2 * c_hid, 2 * c_hid, kernel_size=3, padding=1),
-            act_fn(),
-            nn.ConvTranspose2d(2 * c_hid, c_hid, kernel_size=3, output_padding=1, padding=1, stride=2),  # 8x8 -> 16x16
-            act_fn(),
-            nn.Conv2d(c_hid, c_hid, kernel_size=3, padding=1),
-            act_fn(),
-            nn.ConvTranspose2d(c_hid, num_input_channels, kernel_size=3, output_padding=0, padding=1, stride=2),  # 16x16 -> 28x28
-            nn.Identity(),  # No activation here since logits are needed
-        )
+        nn.ConvTranspose2d(num_filters * 4, num_filters * 2, kernel_size=3, stride=2, padding=1, output_padding=0),  # 4x4 -> 8x8
+        nn.ReLU(),
+        nn.ConvTranspose2d(num_filters * 2, num_filters, kernel_size=3, stride=2, padding=1, output_padding=1),  # 8x8 -> 16x16
+        nn.ReLU(),
+        nn.ConvTranspose2d(num_filters, 16, kernel_size=3, stride=2, padding=1, output_padding=0),  # 16x16 -> 28x28
+    )
         #######################
         # END OF YOUR CODE    #
         #######################
