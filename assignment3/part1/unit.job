@@ -6,7 +6,7 @@
 #SBATCH --gpus=1
 #SBATCH --job-name=TrainVAE_1
 #SBATCH --ntasks=1
-#SBATCH --time=02:00:00
+#SBATCH --time=00:40:00
 #SBATCH --mem=32000M
 #SBATCH --output=slurm_output_%A.out
 
@@ -17,4 +17,4 @@ module load Anaconda3/2023.07-2
 # Activate your environment
 source activate dl2024
 # Run your code
-srun python -u train_pl.py --data_dir $TMPDIR/
+srun python unittests.py
