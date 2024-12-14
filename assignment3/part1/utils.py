@@ -119,7 +119,7 @@ def visualize_manifold(decoder, grid_size=20):
     percentiles = torch.linspace(0.5 / grid_size, (grid_size - 0.5) / grid_size, grid_size)
 
     # Approximate the inverse CDF (icdf) for a standard normal distribution
-    z = torch.sqrt(2) * torch.erfinv(2 * percentiles - 1)
+    z = torch.sqrt(torch.tensor(2.0)) * torch.erfinv(2 * percentiles - 1)
 
     # Create a 2D grid of latent values
     z1, z2 = torch.meshgrid(z, z, indexing="ij")
@@ -127,9 +127,10 @@ def visualize_manifold(decoder, grid_size=20):
 
     # Decode each point in the latent space grid
     logits = decoder(latent_grid)  # Decoder outputs logits
-    probabilities = torch.softmax(logits, dim=1)  # Apply softmax to logits
+    logits = logits.view(-1, 16, 28, 28)  # Reshape to [B, channels, height, width]
 
-    expected_intensity = torch.sum(probabilities * torch.arange(16, device=probabilities.device), dim=1)
+    pixel_values = torch.arange(16, device=logits.device).view(1, -1, 1, 1)  # Values: [0, 1, ..., 15]
+    expected_intensity = torch.sum(torch.softmax(logits, dim=1) * pixel_values, dim=1)
 
     # Reshape decoded images to (grid_size**2, channels, height, width)
     decoded_images = expected_intensity.view(grid_size**2, 1, 28, 28)

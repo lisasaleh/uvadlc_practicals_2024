@@ -114,7 +114,6 @@ class VAE(pl.LightningModule):
         # Convert logits to discrete 4-bit pixel intensities
         x_samples = torch.argmax(logits, dim=1, keepdim=True)  # Shape: [B, C, H, W]
 
-        return x_samples
         #######################
         # END OF YOUR CODE    #
         #######################
@@ -277,4 +276,3 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     train_vae(args)
-
