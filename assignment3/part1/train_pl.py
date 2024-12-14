@@ -74,7 +74,7 @@ class VAE(pl.LightningModule):
         mu, log_std = self.encoder(imgs)
 
         # Sample latent variables using the reparameterization trick
-        z = sample_reparameterize(mu, log_std)
+        z = sample_reparameterize(mu, log_std.exp())
 
         # Decode latent variables to reconstruct images
         logits = self.decoder(z)

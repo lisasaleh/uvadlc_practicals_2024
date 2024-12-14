@@ -85,7 +85,7 @@ def elbo_to_bpd(elbo, img_shape):
     #######################
     n_dimensions = img_shape[1] * img_shape[2] * img_shape[3]  # channels * height * width
 
-    bpd = elbo * torch.log2(torch.exp(torch.tensor(1.0))) / num_dimensions
+    bpd = elbo * torch.log2(torch.exp(torch.tensor(1.0))) / n_dimensions
     #######################
     # END OF YOUR CODE    #
     #######################
