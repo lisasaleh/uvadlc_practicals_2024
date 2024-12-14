@@ -100,12 +100,12 @@ class CNNDecoder(nn.Module):
         self.linear = nn.Linear(z_dim, num_filters * 4 * 4 * 4)  # Map latent vector z to feature map
         
         self.net = nn.Sequential(
-        nn.ConvTranspose2d(num_filters * 4, num_filters * 2, kernel_size=3, stride=2, padding=1, output_padding=0),  # 4x4 -> 8x8
-        nn.ReLU(),
-        nn.ConvTranspose2d(num_filters * 2, num_filters, kernel_size=3, stride=2, padding=1, output_padding=1),  # 8x8 -> 16x16
-        nn.ReLU(),
-        nn.ConvTranspose2d(num_filters, 16, kernel_size=3, stride=2, padding=1, output_padding=0),  # 16x16 -> 28x28
-    )
+            nn.ConvTranspose2d(num_filters * 4, num_filters * 2, kernel_size=3, stride=2, padding=1, output_padding=0),  # 4x4 -> 8x8
+            nn.ReLU(),
+            nn.ConvTranspose2d(num_filters * 2, num_filters, kernel_size=3, stride=2, padding=1, output_padding=1),  # 8x8 -> 16x16
+            nn.ReLU(),
+            nn.ConvTranspose2d(num_filters, num_input_channels, kernel_size=3, stride=2, padding=1, output_padding=1),  # 16x16 -> 28x28
+        )
         #######################
         # END OF YOUR CODE    #
         #######################
