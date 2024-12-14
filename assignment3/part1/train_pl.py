@@ -70,10 +70,24 @@ class VAE(pl.LightningModule):
         #######################
         # PUT YOUR CODE HERE  #
         #######################
-        L_rec = None
-        L_reg = None
-        bpd = None
-        raise NotImplementedError
+        # Encode input images to latent space
+        mu, log_std = self.encoder(imgs)
+
+        # Sample latent variables using the reparameterization trick
+        z = sample_reparameterize(mu, log_std)
+
+        # Decode latent variables to reconstruct images
+        logits = self.decoder(z)
+
+        # Compute reconstruction loss (cross-entropy)
+        L_rec = F.cross_entropy(logits, imgs.long(), reduction='sum') / imgs.shape[0]
+
+        # Compute regularization loss (KL divergence)
+        L_reg = torch.mean(KLD(mu, log_std))
+
+        # Compute ELBO and convert to bits per dimension (bpd)
+        ELBO = L_rec + L_reg
+        bpd = elbo_to_bpd(ELBO, imgs.shape)
         #######################
         # END OF YOUR CODE    #
         #######################
@@ -91,8 +105,16 @@ class VAE(pl.LightningModule):
         #######################
         # PUT YOUR CODE HERE  #
         #######################
-        x_samples = None
-        raise NotImplementedError
+        # Sample latent variables from the prior (standard normal distribution)
+        z = torch.randn(batch_size, self.hparams.z_dim, device=self.device)
+
+        # Decode the latent variables into logits
+        logits = self.decoder(z)
+
+        # Convert logits to discrete 4-bit pixel intensities
+        x_samples = torch.argmax(logits, dim=1, keepdim=True)  # Shape: [B, C, H, W]
+
+        return x_samples
         #######################
         # END OF YOUR CODE    #
         #######################

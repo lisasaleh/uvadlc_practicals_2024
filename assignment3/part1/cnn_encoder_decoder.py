@@ -38,7 +38,18 @@ class CNNEncoder(nn.Module):
         #######################
         # PUT YOUR CODE HERE  #
         #######################
-        raise NotImplementedError
+        super().__init__()
+        self.net = nn.Sequential(
+            nn.Conv2d(num_input_channels, num_filters, kernel_size=3, stride=2, padding=1),  # 28x28 -> 14x14
+            nn.ReLU(),
+            nn.Conv2d(num_filters, num_filters * 2, kernel_size=3, stride=2, padding=1),  # 14x14 -> 7x7
+            nn.ReLU(),
+            nn.Conv2d(num_filters * 2, num_filters * 4, kernel_size=3, stride=2, padding=1),  # 7x7 -> 4x4
+            nn.ReLU()
+        )
+        self.flatten = nn.Flatten()
+        self.fc_mu = nn.Linear(num_filters * 4 * 4 * 4, z_dim)  # Fully connected layer for mean
+        self.fc_log_std = nn.Linear(num_filters * 4 * 4 * 4, z_dim)  # Fully connected layer for log_std
         #######################
         # END OF YOUR CODE    #
         #######################
@@ -56,9 +67,10 @@ class CNNEncoder(nn.Module):
         #######################
         # PUT YOUR CODE HERE  #
         #######################
-        mean = None
-        log_std = None
-        raise NotImplementedError
+        x = self.net(x)  # Pass through convolutional layers
+        x = self.flatten(x)  # Flatten to [B, -1]
+        mean = self.fc_mu(x)  # Compute mean
+        log_std = self.fc_log_std(x)  # Compute log standard deviation
         #######################
         # END OF YOUR CODE    #
         #######################
@@ -84,7 +96,14 @@ class CNNDecoder(nn.Module):
         #######################
         # PUT YOUR CODE HERE  #
         #######################
-        raise NotImplementedError
+        self.linear = nn.Linear(z_dim, num_filters * 4 * 4 * 4)  # Map z to the shape of the feature map
+        self.net = nn.Sequential(
+            nn.ConvTranspose2d(num_filters * 4, num_filters * 2, kernel_size=3, stride=2, padding=1, output_padding=1),  # 4x4 -> 7x7
+            nn.ReLU(),
+            nn.ConvTranspose2d(num_filters * 2, num_filters, kernel_size=3, stride=2, padding=1, output_padding=1),  # 7x7 -> 14x14
+            nn.ReLU(),
+            nn.ConvTranspose2d(num_filters, num_input_channels, kernel_size=3, stride=2, padding=1, output_padding=1),  # 14x14 -> 28x28
+        )
         #######################
         # END OF YOUR CODE    #
         #######################
@@ -102,8 +121,9 @@ class CNNDecoder(nn.Module):
         #######################
         # PUT YOUR CODE HERE  #
         #######################
-        x = None
-        raise NotImplementedError
+        x = self.linear(z)  # Map latent vector to feature map
+        x = x.view(z.shape[0], -1, 4, 4)  # Reshape to [B, C, H, W] where H=W=4
+        x = self.net(x)  # Pass through transposed convolutional layers
         #######################
         # END OF YOUR CODE    #
         #######################

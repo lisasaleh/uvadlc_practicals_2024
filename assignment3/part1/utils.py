@@ -35,8 +35,11 @@ def sample_reparameterize(mean, std):
     #######################
     # PUT YOUR CODE HERE  #
     #######################
-    z = None
-    raise NotImplementedError
+     # Sample epsilon from standard normal distribution
+    eps = torch.randn_like(std)
+
+    # Apply the reparameterization trick: z = mean + std * eps
+    z = mean + std * eps
     #######################
     # END OF YOUR CODE    #
     #######################
@@ -58,8 +61,10 @@ def KLD(mean, log_std):
     #######################
     # PUT YOUR CODE HERE  #
     #######################
-    KLD = None
-    raise NotImplementedError
+    std_squared = torch.exp(2 * log_std)
+
+    # KLD = 0.5 * sum( std^2 + mean^2 - 1 - log(std^2) )
+    KLD = 0.5 * torch.sum(std_squared + mean.pow(2) - 1 - 2 * log_std, dim=-1)
     #######################
     # END OF YOUR CODE    #
     #######################
@@ -78,8 +83,9 @@ def elbo_to_bpd(elbo, img_shape):
     #######################
     # PUT YOUR CODE HERE  #
     #######################
-    bpd = None
-    raise NotImplementedError
+    n_dimensions = img_shape[1] * img_shape[2] * img_shape[3]  # channels * height * width
+
+    bpd = elbo * torch.log2(torch.exp(torch.tensor(1.0))) / num_dimensions
     #######################
     # END OF YOUR CODE    #
     #######################
@@ -110,8 +116,26 @@ def visualize_manifold(decoder, grid_size=20):
     #######################
     # PUT YOUR CODE HERE  #
     #######################
-    img_grid = None
-    raise NotImplementedError
+    percentiles = torch.linspace(0.5 / grid_size, (grid_size - 0.5) / grid_size, grid_size)
+
+    # Approximate the inverse CDF (icdf) for a standard normal distribution
+    z = torch.sqrt(2) * torch.erfinv(2 * percentiles - 1)
+
+    # Create a 2D grid of latent values
+    z1, z2 = torch.meshgrid(z, z, indexing="ij")
+    latent_grid = torch.cat([z1.unsqueeze(-1), z2.unsqueeze(-1)], dim=-1).view(-1, 2)
+
+    # Decode each point in the latent space grid
+    logits = decoder(latent_grid)  # Decoder outputs logits
+    probabilities = torch.softmax(logits, dim=1)  # Apply softmax to logits
+
+    expected_intensity = torch.sum(probabilities * torch.arange(16, device=probabilities.device), dim=1)
+
+    # Reshape decoded images to (grid_size**2, channels, height, width)
+    decoded_images = expected_intensity.view(grid_size**2, 1, 28, 28)
+
+    # Combine into a single grid of images
+    img_grid = torchvision.utils.make_grid(decoded_images, nrow=grid_size, normalize=True, pad_value=1)    
     #######################
     # END OF YOUR CODE    #
     #######################
