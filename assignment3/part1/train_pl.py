@@ -21,6 +21,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+import torchvision
 from torchvision.utils import make_grid, save_image
 import pytorch_lightning as pl
 from pytorch_lightning.callbacks import ModelCheckpoint

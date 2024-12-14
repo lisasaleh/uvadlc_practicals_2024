@@ -15,6 +15,7 @@
 ################################################################################
 
 import torch
+import torchvision
 from torchvision.utils import make_grid
 import numpy as np
 
