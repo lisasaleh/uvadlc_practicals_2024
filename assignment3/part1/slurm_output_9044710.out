@@ -18,77 +18,77 @@ Failed to download (trying next):
 HTTP Error 403: Forbidden
 
 Downloading https://ossci-datasets.s3.amazonaws.com/mnist/train-images-idx3-ubyte.gz
-Downloading https://ossci-datasets.s3.amazonaws.com/mnist/train-images-idx3-ubyte.gz to /scratch-local/scur2773.9044253/MNIST/raw/train-images-idx3-ubyte.gz
-  0%|          | 0.00/9.91M [00:00<?, ?B/s]  1%|          | 65.5k/9.91M [00:00<00:40, 244kB/s]  3%|▎         | 262k/9.91M [00:00<00:14, 658kB/s]  11%|█         | 1.08M/9.91M [00:00<00:03, 2.25MB/s] 44%|████▍     | 4.36M/9.91M [00:00<00:00, 8.13MB/s]100%|██████████| 9.91M/9.91M [00:00<00:00, 11.0MB/s]
-Extracting /scratch-local/scur2773.9044253/MNIST/raw/train-images-idx3-ubyte.gz to /scratch-local/scur2773.9044253/MNIST/raw
+Downloading https://ossci-datasets.s3.amazonaws.com/mnist/train-images-idx3-ubyte.gz to /scratch-local/scur2773.9044710/MNIST/raw/train-images-idx3-ubyte.gz
+  0%|          | 0.00/9.91M [00:00<?, ?B/s]  1%|          | 65.5k/9.91M [00:00<00:39, 248kB/s]  3%|▎         | 262k/9.91M [00:00<00:14, 666kB/s]  11%|█         | 1.05M/9.91M [00:00<00:04, 2.21MB/s] 42%|████▏     | 4.13M/9.91M [00:00<00:00, 8.64MB/s] 82%|████████▏ | 8.13M/9.91M [00:00<00:00, 14.9MB/s]100%|██████████| 9.91M/9.91M [00:00<00:00, 11.1MB/s]
+Extracting /scratch-local/scur2773.9044710/MNIST/raw/train-images-idx3-ubyte.gz to /scratch-local/scur2773.9044710/MNIST/raw
 
 Downloading http://yann.lecun.com/exdb/mnist/train-labels-idx1-ubyte.gz
 Failed to download (trying next):
 HTTP Error 403: Forbidden
 
 Downloading https://ossci-datasets.s3.amazonaws.com/mnist/train-labels-idx1-ubyte.gz
-Downloading https://ossci-datasets.s3.amazonaws.com/mnist/train-labels-idx1-ubyte.gz to /scratch-local/scur2773.9044253/MNIST/raw/train-labels-idx1-ubyte.gz
-  0%|          | 0.00/28.9k [00:00<?, ?B/s]100%|██████████| 28.9k/28.9k [00:00<00:00, 325kB/s]
-Extracting /scratch-local/scur2773.9044253/MNIST/raw/train-labels-idx1-ubyte.gz to /scratch-local/scur2773.9044253/MNIST/raw
+Downloading https://ossci-datasets.s3.amazonaws.com/mnist/train-labels-idx1-ubyte.gz to /scratch-local/scur2773.9044710/MNIST/raw/train-labels-idx1-ubyte.gz
+  0%|          | 0.00/28.9k [00:00<?, ?B/s]100%|██████████| 28.9k/28.9k [00:00<00:00, 321kB/s]
+Extracting /scratch-local/scur2773.9044710/MNIST/raw/train-labels-idx1-ubyte.gz to /scratch-local/scur2773.9044710/MNIST/raw
 
 Downloading http://yann.lecun.com/exdb/mnist/t10k-images-idx3-ubyte.gz
 Failed to download (trying next):
 HTTP Error 403: Forbidden
 
 Downloading https://ossci-datasets.s3.amazonaws.com/mnist/t10k-images-idx3-ubyte.gz
-Downloading https://ossci-datasets.s3.amazonaws.com/mnist/t10k-images-idx3-ubyte.gz to /scratch-local/scur2773.9044253/MNIST/raw/t10k-images-idx3-ubyte.gz
-  0%|          | 0.00/1.65M [00:00<?, ?B/s]  4%|▍         | 65.5k/1.65M [00:00<00:06, 244kB/s] 16%|█▌        | 262k/1.65M [00:00<00:02, 661kB/s]  62%|██████▏   | 1.02M/1.65M [00:00<00:00, 2.12MB/s]100%|██████████| 1.65M/1.65M [00:00<00:00, 2.63MB/s]
-Extracting /scratch-local/scur2773.9044253/MNIST/raw/t10k-images-idx3-ubyte.gz to /scratch-local/scur2773.9044253/MNIST/raw
+Downloading https://ossci-datasets.s3.amazonaws.com/mnist/t10k-images-idx3-ubyte.gz to /scratch-local/scur2773.9044710/MNIST/raw/t10k-images-idx3-ubyte.gz
+  0%|          | 0.00/1.65M [00:00<?, ?B/s]  4%|▍         | 65.5k/1.65M [00:00<00:06, 243kB/s] 16%|█▌        | 262k/1.65M [00:00<00:02, 659kB/s]  64%|██████▎   | 1.05M/1.65M [00:00<00:00, 2.19MB/s]100%|██████████| 1.65M/1.65M [00:00<00:00, 2.62MB/s]
+Extracting /scratch-local/scur2773.9044710/MNIST/raw/t10k-images-idx3-ubyte.gz to /scratch-local/scur2773.9044710/MNIST/raw
 
 Downloading http://yann.lecun.com/exdb/mnist/t10k-labels-idx1-ubyte.gz
 Failed to download (trying next):
 HTTP Error 403: Forbidden
 
 Downloading https://ossci-datasets.s3.amazonaws.com/mnist/t10k-labels-idx1-ubyte.gz
-Downloading https://ossci-datasets.s3.amazonaws.com/mnist/t10k-labels-idx1-ubyte.gz to /scratch-local/scur2773.9044253/MNIST/raw/t10k-labels-idx1-ubyte.gz
-  0%|          | 0.00/4.54k [00:00<?, ?B/s]100%|██████████| 4.54k/4.54k [00:00<00:00, 36.1MB/s]
-Extracting /scratch-local/scur2773.9044253/MNIST/raw/t10k-labels-idx1-ubyte.gz to /scratch-local/scur2773.9044253/MNIST/raw
+Downloading https://ossci-datasets.s3.amazonaws.com/mnist/t10k-labels-idx1-ubyte.gz to /scratch-local/scur2773.9044710/MNIST/raw/t10k-labels-idx1-ubyte.gz
+  0%|          | 0.00/4.54k [00:00<?, ?B/s]100%|██████████| 4.54k/4.54k [00:00<00:00, 36.5MB/s]
+Extracting /scratch-local/scur2773.9044710/MNIST/raw/t10k-labels-idx1-ubyte.gz to /scratch-local/scur2773.9044710/MNIST/raw
 
 GPU available: True (cuda), used: True
 TPU available: False, using: 0 TPU cores
 HPU available: False, using: 0 HPUs
-[INFO] The progress bar has been suppressed. For updates on the training progress, check the TensorBoard file at VAE_logs/lightning_logs/version_9044253. If you want to see the progress bar, use the argparse option "progress_bar".
+[INFO] The progress bar has been suppressed. For updates on the training progress, check the TensorBoard file at VAE_logs/lightning_logs/version_9044710. If you want to see the progress bar, use the argparse option "progress_bar".
 
 [rank: 0] Seed set to 42
 You are using a CUDA device ('NVIDIA A100-SXM4-40GB MIG 3g.20gb') that has Tensor Cores. To properly utilize them, you should set `torch.set_float32_matmul_precision('medium' | 'high')` which will trade-off precision for performance. For more details, read https://pytorch.org/docs/stable/generated/torch.set_float32_matmul_precision.html#torch.set_float32_matmul_precision
-LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [MIG-011a6555-c2c2-5215-a209-b3382449c374]
+LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [MIG-864052f1-dbfa-5cab-82f3-16065d48b83b]
 
   | Name    | Type       | Params | Mode 
 -----------------------------------------------
-0 | encoder | CNNEncoder | 174 K  | train
-1 | decoder | CNNDecoder | 139 K  | train
+0 | encoder | CNNEncoder | 100 K  | train
+1 | decoder | CNNDecoder | 103 K  | train
 -----------------------------------------------
-314 K     Trainable params
+203 K     Trainable params
 0         Non-trainable params
-314 K     Total params
-1.258     Total estimated model params size (MB)
+203 K     Total params
+0.816     Total estimated model params size (MB)
 19        Modules in train mode
 0         Modules in eval mode
 SLURM auto-requeueing enabled. Setting signal handlers.
 `Trainer.fit` stopped: `max_epochs=80` reached.
-LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [MIG-011a6555-c2c2-5215-a209-b3382449c374]
+LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [MIG-864052f1-dbfa-5cab-82f3-16065d48b83b]
 SLURM auto-requeueing enabled. Setting signal handlers.
 ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
        Test metric             DataLoader 0
 ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
-        test_bpd            0.5483932495117188
+        test_bpd            0.8029128313064575
 ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 
 JOB STATISTICS
 ==============
-Job ID: 9044253
+Job ID: 9044710
 Cluster: snellius
 User/Group: scur2773/scur2773
 State: COMPLETED (exit code 0)
 Nodes: 1
 Cores per node: 9
-CPU Utilized: 00:17:09
-CPU Efficiency: 39.70% of 00:43:12 core-walltime
-Job Wall-clock time: 00:04:48
-Memory Utilized: 919.43 MB
-Memory Efficiency: 2.87% of 31.25 GB
+CPU Utilized: 00:17:13
+CPU Efficiency: 39.58% of 00:43:30 core-walltime
+Job Wall-clock time: 00:04:50
+Memory Utilized: 905.41 MB
+Memory Efficiency: 2.83% of 31.25 GB
