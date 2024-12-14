@@ -96,13 +96,17 @@ class CNNDecoder(nn.Module):
         #######################
         # PUT YOUR CODE HERE  #
         #######################
-        self.linear = nn.Linear(z_dim, num_filters * 4 * 4 * 4)  # Map z to the shape of the feature map
         self.net = nn.Sequential(
-            nn.ConvTranspose2d(num_filters * 4, num_filters * 2, kernel_size=3, stride=2, padding=1, output_padding=1),  # 4x4 -> 7x7
-            nn.ReLU(),
-            nn.ConvTranspose2d(num_filters * 2, num_filters, kernel_size=3, stride=2, padding=1, output_padding=1),  # 7x7 -> 14x14
-            nn.ReLU(),
-            nn.ConvTranspose2d(num_filters, num_input_channels, kernel_size=3, stride=2, padding=1, output_padding=1),  # 14x14 -> 28x28
+            nn.ConvTranspose2d(2 * c_hid, 2 * c_hid, kernel_size=3, output_padding=0, padding=1, stride=2),  # 4x4 -> 8x8
+            act_fn(),
+            nn.Conv2d(2 * c_hid, 2 * c_hid, kernel_size=3, padding=1),
+            act_fn(),
+            nn.ConvTranspose2d(2 * c_hid, c_hid, kernel_size=3, output_padding=1, padding=1, stride=2),  # 8x8 -> 16x16
+            act_fn(),
+            nn.Conv2d(c_hid, c_hid, kernel_size=3, padding=1),
+            act_fn(),
+            nn.ConvTranspose2d(c_hid, num_input_channels, kernel_size=3, output_padding=0, padding=1, stride=2),  # 16x16 -> 28x28
+            nn.Identity(),  # No activation here since logits are needed
         )
         #######################
         # END OF YOUR CODE    #

@@ -80,8 +80,8 @@ class VAE(pl.LightningModule):
         logits = self.decoder(z)
 
         # Compute reconstruction loss (cross-entropy)
-        L_rec = F.cross_entropy(logits, imgs.long(), reduction='sum') / imgs.shape[0]
-
+        L_rec = F.cross_entropy(logits, imgs.long().squeeze(1), reduction='sum') / imgs.shape[0]
+        
         # Compute regularization loss (KL divergence)
         L_reg = torch.mean(KLD(mu, log_std))
 
