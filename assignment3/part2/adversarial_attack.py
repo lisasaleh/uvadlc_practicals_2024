@@ -141,12 +141,16 @@ def test_attack(model, test_loader, attack_function, attack_args):
         model.zero_grad()
         
         if attack_function == FGSM: 
-            # Get the correct gradients wrt the data
+            # Ensure loss.backward() has been called to compute gradients
+            if data.grad is None:
+                loss.backward()  # Compute gradients for the data
+            
+            # Get the gradients w.r.t. the data
             data_grad = data.grad.data
 
             # Perturb the data using the FGSM attack
             epsilon = attack_args[EPSILON]
-            perturbed_data = fgsm_attack(data, data_grad, epsilon)
+            perturbed_data = fgsm_attack(data.detach(), data_grad, epsilon)
 
             # Re-classify the perturbed image
             output = model(perturbed_data)
