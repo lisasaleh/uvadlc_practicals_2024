@@ -96,9 +96,13 @@ def train(model, trainloader, validloader, num_epochs=25, defense_strategy = STA
                         _, preds = torch.max(outputs, 1)
                         loss = criterion(outputs, labels)
                     elif defense_strategy == FGSM and phase == 'train':
+                        print("Inputs - shape:", inputs.shape, "requires_grad:", inputs.requires_grad)
+                        print("Labels - shape:", labels.shape)
                         loss, preds = fgsm_loss(model, criterion, inputs, labels, 
                                                 defense_args = defense_args,
                                                 return_preds = True)
+                        print("Loss from FGSM Loss:", loss.item())
+                        print("Inputs - grad after FGSM Loss:", inputs.grad)
                     # backward + optimize only if in training phase
                     elif defense_strategy == PGD and phase == 'train':
                         # Get adverserial examples using PGD attack
@@ -113,6 +117,7 @@ def train(model, trainloader, validloader, num_epochs=25, defense_strategy = STA
                         # zero the parameter gradients
                         optimizer.zero_grad()
                         loss.backward()
+                        print("Optimizer - state_dict:", optimizer.state_dict())
                         optimizer.step()
 
                 # statistics
