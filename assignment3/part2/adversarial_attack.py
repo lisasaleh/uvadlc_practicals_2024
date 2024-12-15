@@ -57,7 +57,7 @@ def fgsm_loss(model, criterion, inputs, labels, defense_args, return_preds = Tru
     
     # Backward pass to compute gradients
     model.zero_grad()
-    loss_original.backward()
+    loss_original.backward(retain_graph=True)  # Retain the graph for combined loss
     print("Inputs - grad after backward:", inputs.grad)
 
     # Generate perturbation using gradients (FGSM)
@@ -69,7 +69,6 @@ def fgsm_loss(model, criterion, inputs, labels, defense_args, return_preds = Tru
     print("Perturbed Inputs - min:", perturbed_inputs.min(), "max:", perturbed_inputs.max())
 
     # Second forward pass: compute loss for perturbed inputs
-    perturbed_inputs.requires_grad = False  # Ensure no new graph is created
     perturbed_outputs = model(perturbed_inputs)
     loss_perturbed = criterion(perturbed_outputs, labels)
     print("Inputs - grad before returning loss:", inputs.grad)
