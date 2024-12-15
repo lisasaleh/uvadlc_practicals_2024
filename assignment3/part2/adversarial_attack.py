@@ -51,33 +51,25 @@ def fgsm_loss(model, criterion, inputs, labels, defense_args, return_preds = Tru
     # Hint: the inputs are used in two different forward passes,
     # so you need to make sure those don't clash
     # First forward pass: compute loss for original inputs
-    print("Inputs - requires_grad:", inputs.requires_grad)
     original_outputs = model(inputs)
     loss_original = criterion(original_outputs, labels)
     
     # Backward pass to compute gradients
     model.zero_grad()
     loss_original.backward(retain_graph=True)  # Retain the graph for combined loss
-    print("Inputs - grad after backward:", inputs.grad)
 
     # Generate perturbation using gradients (FGSM)
     data_grad = inputs.grad.data
-    print("Data Grad - min:", data_grad.min(), "max:", data_grad.max())
     perturbed_inputs = fgsm_attack(inputs.detach().clone(), data_grad, epsilon)
-
-    print("Perturbed Inputs - requires_grad:", perturbed_inputs.requires_grad)
-    print("Perturbed Inputs - min:", perturbed_inputs.min(), "max:", perturbed_inputs.max())
 
     # Second forward pass: compute loss for perturbed inputs
     perturbed_outputs = model(perturbed_inputs)
     loss_perturbed = criterion(perturbed_outputs, labels)
-    print("Inputs - grad before returning loss:", inputs.grad)
     # Combine the two losses
     loss = (1 - alpha) * loss_original + alpha * loss_perturbed
 
     model.zero_grad()
     inputs.grad = None
-    print("Inputs - grad after reset:", inputs.grad)  # Debug print
 
     if return_preds:
         _, preds = torch.max(original_outputs, 1)
