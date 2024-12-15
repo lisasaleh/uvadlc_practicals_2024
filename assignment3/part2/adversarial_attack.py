@@ -69,6 +69,9 @@ def fgsm_loss(model, criterion, inputs, labels, defense_args, return_preds = Tru
     
     # Combine the two losses
     loss = (1 - alpha) * loss_original + alpha * loss_perturbed
+
+    inputs.grad = None  # Ensure no residual gradients remain
+    
     if return_preds:
         _, preds = torch.max(original_outputs, 1)
         return loss, preds
